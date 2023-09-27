@@ -27,19 +27,22 @@ class MainWindow(QMainWindow):
         self.ui.toggle.setCheckable(False)
         self.ui.toggle.clicked.connect(self.handle_toggle)
 
-        #INITIAL CAMERA PARAMETERS
-
+        #INITIAL PARAMETERS
         self.brilho = 49
         self.constraste = 49
         self.selected_option = None
         self.control = False
-
+        self.frame_tratado = None
         self.capture = None
         self.camera_ativa = False
+        self.ui.ui_pages.slider.setEnabled(False)
+        self.ui.ui_pages.slider2.setEnabled(False)
+        self.ui.ui_pages.combobox.setEnabled(False)
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.video_frame)
         self.timer.timeout.connect(self.update_label)
+        self.timer.timeout.connect(self.tratamento_frame)
         self.timer.start(30) # Atualiza o frame a cada 30 milissegundos
 
         self.ui.ui_pages.combobox.currentIndexChanged.connect(self.combobox_selection_changed)  # Conectar o sinal ao método
@@ -103,12 +106,15 @@ class MainWindow(QMainWindow):
 
     def video_frame(self):
         self.frame = self.capturar_frame()
-        if self.frame is not None:
+        if self.frame_tratado is not None:
+            self.ui.ui_pages.slider.setEnabled(True)
+            self.ui.ui_pages.slider2.setEnabled(True)
+            self.ui.ui_pages.combobox.setEnabled(True)
             # Define as dimensões desejadas para exibição
             target_width, target_height = 480, 360
 
             # Redimensiona o quadro para as dimensões desejadas
-            resized_frame = cv2.resize(self.frame, (target_width, target_height))
+            resized_frame = cv2.resize(self.frame_tratado, (target_width, target_height))
 
             # Converte o quadro redimensionado em uma imagem QImage
             image = QImage(resized_frame.data, target_width, target_height, QImage.Format_RGB888)
@@ -120,6 +126,9 @@ class MainWindow(QMainWindow):
             self.ui.label_camera.setPixmap(pixmap)
             self.ui.label_camera.setFixedSize(target_width, target_height)
         else:
+            self.ui.ui_pages.slider.setEnabled(False)
+            self.ui.ui_pages.slider2.setEnabled(False)
+            self.ui.ui_pages.combobox.setEnabled(False)
             # Define as dimensões desejadas para exibição
             target_width, target_height = 480, 360
 
@@ -136,7 +145,7 @@ class MainWindow(QMainWindow):
             self.ui.label_camera.setPixmap(pixmap)
             self.ui.label_camera.setFixedSize(target_width, target_height)
 
-    def ajustar_brilho_contraste(imagem, brilho, contraste):
+    def brilho_contraste(self, imagem, brilho, contraste):
         brilho = (((brilho + 1)-50)/50)*127
         contraste = ((contraste + 1)*2)/100
         # Aplicar a transformação linear de ajuste de brilho e contraste
@@ -145,7 +154,7 @@ class MainWindow(QMainWindow):
         return imagem_ajustada
 
     # Aplicando super-resolução - ESPCN 
-    def super_resolucao(imagem, path, index):
+    def super_resolucao(self, imagem, path, index):
         sr = cv2.dnn_superres.DnnSuperResImpl_create()
         sr.readModel(path)
         sr.setModel("espcn", index+1)
@@ -153,7 +162,6 @@ class MainWindow(QMainWindow):
 
         return result_sr
     
-
     #Função pra retornar o indice do Combobox
     def combobox_selection_changed(self, index):
         self.index = index
@@ -173,26 +181,11 @@ class MainWindow(QMainWindow):
 
     #Função de tratamento de frame com correção de iluminação e super resolução
     def tratamento_frame(self):
-        self.frame_tratado = cv2.imread("Foto.png")
-        self.frame_tratado = self.ajustar_brilho_contraste(self.frame_tratado, self.brilho, self.constraste)
+        self.frame_tratado = self.brilho_contraste(self.frame, self.brilho, self.constraste)
         if self.control is True:
             self.frame_tratado = self.super_resolucao(self.frame_tratado, self.selected_option, self.index)
             self.control = False
         
-        # Define as dimensões desejadas para exibição
-        target_width, target_height = 420,280
-
-        # Redimensiona o quadro para as dimensões desejadas
-        imagem = cv2.resize(self.frame_tratado, (target_width, target_height))
-        imagem = cv2.cvtColor(imagem, cv2.COLOR_BGR2RGB)
-        # Converte o quadro redimensionado em uma imagem QImage
-        image = QImage(imagem.data, target_width, target_height, QImage.Format_RGB888)
-        pixmap = QPixmap.fromImage(image)
-
-        # Redimensiona a pixmap para a exibição sem cortar
-        pixmap = pixmap.scaled(target_width, target_height, Qt.AspectRatioMode.KeepAspectRatio)
-        self.ui.frame_1.setPixmap(pixmap)
-    
     #Função de mensagem para o console 
     def report(self, message):
         # Adiciona uma mensagem de reportagem ao console

@@ -157,7 +157,7 @@ class UI_MainWindow(object):
         """)
 
 
-        self.action1 = QAction("salvar imagem")
+        self.action1 = QAction("Save image")
         self.action2 = QAction("Exit")
 
         self.menu1.addAction(self.action1)

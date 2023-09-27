@@ -66,6 +66,7 @@ class Ui_StackedWidget(object):
                     }
                 """)
         self.combobox.addItems(['Escala da super resolução', 'ESPCN_x2.pb', 'ESPCN_x3.pb', 'ESPCN_x4.pb'])
+        self.combobox.setItemData(0, Qt.ItemIsEnabled, Qt.UserRole - 1)
         self.verticalLayout.addWidget(self.combobox)
         self.verticalLayout.addItem(self.left_menu_spacinggg)
 
