@@ -44,6 +44,17 @@ class Ui_StackedWidget(object):
         self.slider2 = PySlider()
         self.verticalLayout.addWidget(self.slider2)
 
+        #create label: equalization for histogram
+
+        self.label_hist = QLabel("EQUALIZAÇÃO POR HISTOGRAMA")
+        self.switch = QRadioButton("switch")
+        self.verticalLayout.addWidget(self.label_hist)
+        self.verticalLayout.addWidget(self.switch)
+        
+
+
+
+
         self.label3 = QLabel("SELECIONE UMA OPÇÃO:")
         self.verticalLayout.addWidget(self.label3)
 
