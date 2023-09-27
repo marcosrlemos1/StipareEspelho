@@ -226,7 +226,7 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.warning(None,"sem frame", "A câmera não está ativa.")
             
-
+#Inicialização da IDE
 if __name__=="__main__":
     app = QApplication()
     window = MainWindow()
