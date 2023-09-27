@@ -145,7 +145,7 @@ class MainWindow(QMainWindow):
         return imagem_ajustada
 
     # Aplicando super-resolução - ESPCN 
-    def super_resolucao(imagem, path, index):
+    def super_resolucao(self,imagem, path, index):
         sr = cv2.dnn_superres.DnnSuperResImpl_create()
         sr.readModel(path)
         sr.setModel("espcn", index+1)
@@ -225,8 +225,8 @@ class MainWindow(QMainWindow):
 
         else:
             QMessageBox.warning(None,"sem frame", "A câmera não está ativa.")
-            
-
+    
+                
 if __name__=="__main__":
     app = QApplication()
     window = MainWindow()
