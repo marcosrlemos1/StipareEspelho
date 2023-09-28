@@ -117,16 +117,16 @@ class UI_MainWindow(object):
 
 
         #CREATE BUTTON FILE
-        self.file = PyPushButton("FILES", heigh=25, width=55, border_radius=4)
+        self.file = PyPushButton("Arquivos", heigh=25, width=55, border_radius=4)
         self.toolbar_layout.addWidget(self.file)
         
 
         #CREATE BUTTON EDIT
-        self.edit = PyPushButton("EDIT", heigh=25, width=45, border_radius=4)
+        self.edit = PyPushButton("Editar", heigh=25, width=45, border_radius=4)
         self.toolbar_layout.addWidget(self.edit)
 
         #CREATE BUTTON HELP
-        self.help = PyPushButton("HELP", heigh=25, width=45, border_radius=4)
+        self.help = PyPushButton("Ajuda", heigh=25, width=45, border_radius=4)
         self.toolbar_layout.addWidget(self.help)
 
 
@@ -157,8 +157,8 @@ class UI_MainWindow(object):
         """)
 
 
-        self.action1 = QAction("Save image")
-        self.action2 = QAction("Exit")
+        self.action1 = QAction("Salvar imagem")
+        self.action2 = QAction("Sair")
 
         self.menu1.addAction(self.action1)
         self.menu1.addAction(self.action2)

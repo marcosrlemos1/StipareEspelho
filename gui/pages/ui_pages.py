@@ -46,15 +46,13 @@ class Ui_StackedWidget(object):
         self.verticalLayout.addWidget(self.slider2)
 
         #create label: equalization for histogram
-
         self.label_hist = QLabel("Equalização de Histograma")
+        #create a switch
         self.switch = PyToggle()
         self.verticalLayout.addWidget(self.label_hist)
         self.verticalLayout.addWidget(self.switch)
         
-
-
-
+        #cereate a combobox
 
         self.label3 = QLabel("Selecione uma opção:")
         self.verticalLayout.addWidget(self.label3)

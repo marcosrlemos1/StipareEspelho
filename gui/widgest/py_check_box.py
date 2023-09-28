@@ -1,4 +1,5 @@
 from qt_core import *
+#botão interruptor
 
 class PyToggle(QCheckBox):
     def __init__(
