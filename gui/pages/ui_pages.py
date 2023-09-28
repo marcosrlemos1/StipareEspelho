@@ -11,6 +11,7 @@
 from qt_core import *
 from gui.widgest.py_push_button import PyPushButton
 from gui.widgest.py_Slider import PySlider
+from gui.widgest.py_check_box import PyToggle
 
 class Ui_StackedWidget(object):
     def setupUi(self, StackedWidget):
@@ -34,20 +35,20 @@ class Ui_StackedWidget(object):
         self.left_menu_spacinggg = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
 
-        self.label = QLabel("BRILHO")
+        self.label = QLabel("Brilho")
         self.verticalLayout.addWidget(self.label)
         self.slider = PySlider()
         self.verticalLayout.addWidget(self.slider)
 
-        self.label2 = QLabel("CONTRASTE")
+        self.label2 = QLabel("Contraste")
         self.verticalLayout.addWidget(self.label2)
         self.slider2 = PySlider()
         self.verticalLayout.addWidget(self.slider2)
 
         #create label: equalization for histogram
 
-        self.label_hist = QLabel("EQUALIZAÇÃO POR HISTOGRAMA")
-        self.switch = QRadioButton("switch")
+        self.label_hist = QLabel("Equalização de Histograma")
+        self.switch = PyToggle()
         self.verticalLayout.addWidget(self.label_hist)
         self.verticalLayout.addWidget(self.switch)
         
@@ -55,7 +56,7 @@ class Ui_StackedWidget(object):
 
 
 
-        self.label3 = QLabel("SELECIONE UMA OPÇÃO:")
+        self.label3 = QLabel("Selecione uma opção:")
         self.verticalLayout.addWidget(self.label3)
 
         self.combobox = QComboBox()
