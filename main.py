@@ -162,6 +162,10 @@ class MainWindow(QMainWindow):
 
         return result_sr
     
+    #Aplicação de equalização por histograma
+    def histogram_equalization(self, imagem):
+        pass
+    
     #Função pra retornar o indice do Combobox
     def combobox_selection_changed(self, index):
         self.index = index
