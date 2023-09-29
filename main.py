@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
         self.ui.toggle.setCheckable(False)
         self.ui.toggle.clicked.connect(self.handle_toggle)
 
-        #INITIAL PARAMETERS
+        #INITIAL PARAMETERS 
         self.brilho = 49
         self.constraste = 49
         self.selected_option = None
@@ -35,9 +35,11 @@ class MainWindow(QMainWindow):
         self.frame_tratado = None
         self.capture = None
         self.camera_ativa = False
+        self.switch_value = False
         self.ui.ui_pages.slider.setEnabled(False)
         self.ui.ui_pages.slider2.setEnabled(False)
         self.ui.ui_pages.combobox.setEnabled(False)
+        self.ui.ui_pages.switch.setEnabled(False)
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.video_frame)
@@ -48,6 +50,7 @@ class MainWindow(QMainWindow):
         self.ui.ui_pages.combobox.currentIndexChanged.connect(self.combobox_selection_changed)  # Conectar o sinal ao método
         self.ui.ui_pages.slider.valueChanged.connect(self.slider_value_changed)
         self.ui.ui_pages.slider2.valueChanged.connect(self.slider_value_changed2)
+        self.ui.ui_pages.switch.clicked.connect(self.switch_changed)
 
         self.data_hora2 =self.update_label()
 
@@ -63,12 +66,10 @@ class MainWindow(QMainWindow):
     def show_page_2(self):
         self.ui.paginas.setCurrentWidget(self.ui.ui_pages.page2)
 
-
     def update_label(self):
         atual = QDateTime.currentDateTime()
         formatted_datetime = atual.toString("dd/MM/yyyy - hh:mm:ss")
         self.ui.label_status.setText("STATUS: " + formatted_datetime)
-
 
     #função responsavel para ativar e desativar a camera e botão
     def handle_toggle(self):
@@ -110,6 +111,7 @@ class MainWindow(QMainWindow):
             self.ui.ui_pages.slider.setEnabled(True)
             self.ui.ui_pages.slider2.setEnabled(True)
             self.ui.ui_pages.combobox.setEnabled(True)
+            self.ui.ui_pages.switch.setEnabled(True)
             # Define as dimensões desejadas para exibição
             target_width, target_height = 480, 360
 
@@ -129,6 +131,7 @@ class MainWindow(QMainWindow):
             self.ui.ui_pages.slider.setEnabled(False)
             self.ui.ui_pages.slider2.setEnabled(False)
             self.ui.ui_pages.combobox.setEnabled(False)
+            self.ui.ui_pages.switch.setEnabled(False)
             # Define as dimensões desejadas para exibição
             target_width, target_height = 480, 360
 
@@ -164,7 +167,9 @@ class MainWindow(QMainWindow):
     
     #Aplicação de equalização por histograma
     def histogram_equalization(self, imagem):
-        pass
+         imagem_equalizada = cv2.equalizeHist(imagem)
+
+         return imagem_equalizada
     
     #Função pra retornar o indice do Combobox
     def combobox_selection_changed(self, index):
@@ -182,6 +187,10 @@ class MainWindow(QMainWindow):
     def slider_value_changed2(self, value2):
         self.constraste = value2
         self.ui.ui_pages.label2.setText(f"CONTRASTE : {(value2+1)-50}")
+    
+    #Função para retornar o valor do botão EH
+    def switch_changed(self, switch_value):
+        self.switch_value = switch_value
 
     #Função de tratamento de frame com correção de iluminação e super resolução
     def tratamento_frame(self):
@@ -189,6 +198,8 @@ class MainWindow(QMainWindow):
         if self.control is True:
             self.frame_tratado = self.super_resolucao(self.frame_tratado, self.selected_option, self.index)
             self.control = False
+        if self.switch_value is True:
+            self.frame_tratado =  self.histogram_equalization(self.frame_tratado)
         
     #Função de mensagem para o console 
     def report(self, message):

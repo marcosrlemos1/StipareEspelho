@@ -79,6 +79,13 @@ class Ui_StackedWidget(object):
         self.verticalLayout.addWidget(self.label_hist)
         self.verticalLayout.addWidget(self.switch)
 
+        #create label: equalization for histogram
+        self.label_hist2 = QLabel("Filtro Passa-Baixa")
+        #create a switch
+        self.switch2 = PyToggle()
+        self.verticalLayout.addWidget(self.label_hist2)
+        self.verticalLayout.addWidget(self.switch2)
+
         self.verticalLayout.addItem(self.left_menu_spacinggg)
 
         #CREATE PAGE 2
