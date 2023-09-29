@@ -44,13 +44,6 @@ class Ui_StackedWidget(object):
         self.verticalLayout.addWidget(self.label2)
         self.slider2 = PySlider()
         self.verticalLayout.addWidget(self.slider2)
-
-        #create label: equalization for histogram
-        self.label_hist = QLabel("Equalização de Histograma")
-        #create a switch
-        self.switch = PyToggle()
-        self.verticalLayout.addWidget(self.label_hist)
-        self.verticalLayout.addWidget(self.switch)
         
         #cereate a combobox
 
@@ -78,8 +71,15 @@ class Ui_StackedWidget(object):
         self.combobox.addItems(['Escala da super resolução', 'ESPCN_x2.pb', 'ESPCN_x3.pb', 'ESPCN_x4.pb'])
         self.combobox.setItemData(0, Qt.ItemIsEnabled, Qt.UserRole - 1)
         self.verticalLayout.addWidget(self.combobox)
-        self.verticalLayout.addItem(self.left_menu_spacinggg)
+        
+        #create label: equalization for histogram
+        self.label_hist = QLabel("Equalização de Histograma")
+        #create a switch
+        self.switch = PyToggle()
+        self.verticalLayout.addWidget(self.label_hist)
+        self.verticalLayout.addWidget(self.switch)
 
+        self.verticalLayout.addItem(self.left_menu_spacinggg)
 
         #CREATE PAGE 2
         StackedWidget.addWidget(self.page1)
