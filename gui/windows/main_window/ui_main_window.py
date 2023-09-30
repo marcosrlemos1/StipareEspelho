@@ -134,9 +134,6 @@ class UI_MainWindow(object):
         self.tool_space =QSpacerItem(20,20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.toolbar_layout.addItem(self.tool_space)
 
-
-
-
         self.menu1 = QMenu(parent)
         self.menu1.setStyleSheet("""
             QMenu {
@@ -191,10 +188,6 @@ class UI_MainWindow(object):
                 background-color: #1E2022; 
             }
         ''')
-
-
-
-
 
         #CREATE APPLICATION PAGES
         self.page = QFrame()

@@ -1,6 +1,7 @@
 # IMPORT MODULES
 import sys
 import os
+import configparser
 
 # IMPORT QT_CORE
 from qt_core import *
@@ -28,20 +29,32 @@ class MainWindow(QMainWindow):
         self.ui.toggle.clicked.connect(self.handle_toggle)
 
         # INITIAL PARAMETERS
+        self.cam_width = 800
+        self.cam_height = 600
         self.brilho = 49
-        self.constraste = 49
-        self.selected_option = None
-        self.control = False
+        self.contraste = 49
+        self.selected_option = 0
+        self.index = 0
         self.frame_tratado = None
         self.capture = None
+        self.restore_control = False
         self.camera_ativa = False
         self.switch_value = False
         self.switch_value2 = False
         self.switch_value3 = False
         self.switch_value4 = False
 
+        # Configurações padrões
+        self.default_settings = {
+            'brilho': 49,
+            'contraste': 49,
+            'index': 0,
+            'switch_value': False,
+        }
+
         sys.stdout = self
         self.log_messages = []
+        self.settings = configparser.ConfigParser()
 
         self.ui.ui_pages.slider.setEnabled(False)
         self.ui.ui_pages.slider2.setEnabled(False)
@@ -64,6 +77,8 @@ class MainWindow(QMainWindow):
         self.ui.ui_pages.switch2.clicked.connect(self.switch_changed2)
         self.ui.ui_pages.switch3.clicked.connect(self.switch_changed3)
         self.ui.ui_pages.switch4.clicked.connect(self.switch_changed4)
+        self.ui.ui_pages.restore_button.clicked.connect(self.restore_defaults)
+        self.ui.edit.clicked.connect(self.restore_defaults)
 
         self.data_hora2 = self.update_label()
 
@@ -72,6 +87,8 @@ class MainWindow(QMainWindow):
 
         self.ui.action1.triggered.connect(self.save_image)
         self.ui.action2.triggered.connect(self.save_log)
+        self.ui.action3.triggered.connect(self.saveSettings)
+        self.ui.action4.triggered.connect(self.loadSettings)
         self.ui.action5.triggered.connect(self.exit_application)
 
     def show_page_1(self):
@@ -131,7 +148,7 @@ class MainWindow(QMainWindow):
             self.ui.ui_pages.switch4.setEnabled(True)
 
             # Define as dimensões desejadas para exibição
-            target_width, target_height = 420, 360
+            target_width, target_height = self.cam_width, self.cam_height
 
             # Redimensiona o quadro para as dimensões desejadas
             resized_frame = cv2.resize(
@@ -243,72 +260,69 @@ class MainWindow(QMainWindow):
     # Função pra retornar o indice do Combobox
     def combobox_selection_changed(self, index):
         self.index = index
-        self.selected_option = 'ESPCN_SR/' + \
-            self.ui.ui_pages.combobox.currentText()  # Obter a opção selecionada
-        self.control = True
-        self.report(
-            f"{self.data_hora()} / Escala de super resolução mudou para {self.ui.ui_pages.combobox.currentText()}")
+        if self.index == 0 and self.restore_control is False:
+            self.report(f"{self.data_hora()} / Escala de super resolução desativada")
+        if self.index != 0 and self.restore_control is False:
+            self.selected_option = 'ESPCN_SR/' + self.ui.ui_pages.combobox.currentText()  # Obter a opção selecionada
+            self.report(f"{self.data_hora()} / Escala de super resolução mudou para {self.ui.ui_pages.combobox.currentText()}")
 
     # Função para retornar o valor do brilho
     def slider_value_changed(self, value):
         self.brilho = value
-        self.ui.ui_pages.label.setText(f"BRILHO : {(value+1)-50}")
+        self.ui.ui_pages.label.setText(f"Brilho : {(value+1)-50}")
 
     # Função para retornar o valor do contraste
     def slider_value_changed2(self, value2):
-        self.constraste = value2
-        self.ui.ui_pages.label2.setText(f"CONTRASTE : {(value2+1)-50}")
+        self.contraste = value2
+        self.ui.ui_pages.label2.setText(f"Contraste : {(value2+1)-50}")
 
     # Função para retornar o valor do botão EH
     def switch_changed(self, switch_value):
         self.switch_value = switch_value
-        if switch_value is True:
-            self.report(
-                f"{self.data_hora()} / Equilização por histograma ativado")
-        else:
-            self.report(
-                f"{self.data_hora()} / Equilização por histograma desativado")
+        if switch_value is True and self.restore_control is False:
+            self.report(f"{self.data_hora()} / Equilização por histograma ativado")
+        if switch_value is False and self.restore_control is False:
+            self.report(f"{self.data_hora()} / Equilização por histograma desativado")
 
     # Função para retornar o valor do botão FPB
     def switch_changed2(self, switch_value2):
         self.switch_value2 = switch_value2
 
-        if switch_value2 is True:
+        if switch_value2 is True and self.restore_control is False:
             self.report(f"{self.data_hora()} / Filtro passa-baixa ativado")
-        else:
+        if switch_value2 is False and self.restore_control is False:
             self.report(f"{self.data_hora()} / Filtro passa-baixa desativado")
 
     # Função para retornar o valor do botão FM
     def switch_changed3(self, switch_value3):
         self.switch_value3 = switch_value3
 
-        if switch_value3 is True:
+        if switch_value3 is True and self.restore_control is False:
             self.report(f"{self.data_hora()} / Filtro por mediana ativado")
-        else:
+        if switch_value3 is False and self.restore_control is False:
             self.report(f"{self.data_hora()} / Filtro por mediana desativado")
 
     # Função para retornar o valor do botão FM
     def switch_changed4(self, switch_value4):
         self.switch_value4 = switch_value4
 
-        if switch_value4 is True:
+        if switch_value4 is True and self.restore_control is False:
             self.report(f"{self.data_hora()} / Nitidez ativada")
-        else:
+        if switch_value4 is False and self.restore_control is False:
             self.report(f"{self.data_hora()} / Nitidez desativada")
 
     # Função de tratamento de frame com correção de iluminação e super resolução
     def tratamento_frame(self):
-        self.frame_tratado = self.brilho_contraste(
-            self.frame, self.brilho, self.constraste)
-        if self.control is True:
+        self.frame_tratado = self.brilho_contraste(self.frame, self.brilho, self.contraste)
+        if self.index != 0 and self.frame is not None:
             self.frame_tratado = self.super_resolucao(self.frame_tratado, self.selected_option, self.index)
-        if self.switch_value is True:
+        if self.switch_value is True and self.frame is not None:
             self.frame_tratado = self.histogram_equalization(self.frame_tratado)
-        if self.switch_value2 is True:
+        if self.switch_value2 is True and self.frame is not None:
             self.frame_tratado = self.passa_baixa(self.frame_tratado)
-        if self.switch_value3 is True:
+        if self.switch_value3 is True and self.frame is not None:
             self.frame_tratado = self.filtro_mediana(self.frame_tratado)
-        if self.switch_value4 is True:
+        if self.switch_value4 is True and self.frame is not None:
             self.frame_tratado = self.nitidez(self.frame_tratado)
 
     # Função de mensagem para o console
@@ -330,9 +344,8 @@ class MainWindow(QMainWindow):
                 # Escreve todas as mensagens armazenadas no arquivo
                 log_file.write('\n'.join(self.log_messages))
 
-     # Substitua a função write para redirecionar a saída para o QTextEdit
+    # Substitua a função write para redirecionar a saída para o QTextEdit
     def write(self, text):
-        text_with_newline = text.rstrip() + '\n'
         self.ui.text_edit.moveCursor(QTextCursor.End)
         self.ui.text_edit.insertPlainText(text)
         self.ui.text_edit.moveCursor(QTextCursor.End)
@@ -347,12 +360,18 @@ class MainWindow(QMainWindow):
         return atual.strftime("%d/%m/%Y - %H:%M")
 
     def exit_application(self):
-        # Exibir um diálogo de confirmação antes de sair
-        reply = QMessageBox.question(
-            self, 'Exit', 'Are you sure you want to exit?', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            QApplication.quit()
+        # Perguntar ao usuário se ele deseja salvar as configurações
+        reply = QMessageBox.question(self, "Salvar Configurações", "Deseja salvar as configurações antes de sair?",
+                                    QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
 
+        if reply == QMessageBox.Yes:
+            self.saveSettings()
+            QApplication.quit()
+        elif reply == QMessageBox.No:
+            QApplication.quit()
+        else:
+            pass  # O usuário cancelou, não faz nada
+  
     # Função para salvar um frame da imagem
     def save_image(self):
         if self.camera_ativa == True:
@@ -368,8 +387,76 @@ class MainWindow(QMainWindow):
 
         else:
             QMessageBox.warning(None, "sem frame", "A câmera não está ativa.")
+    
+    def restore_defaults(self):
+        # Restaura as configurações padrões
+        self.restore_control = True
+        self.ui.ui_pages.slider.setValue(self.default_settings['brilho'])
+        self.ui.ui_pages.slider2.setValue(self.default_settings['contraste'])
+        self.ui.ui_pages.combobox.setCurrentIndex(self.default_settings['index'])
+        self.ui.ui_pages.switch.setChecked(self.default_settings['switch_value'])
+        self.switch_value = self.default_settings['switch_value']
+        self.ui.ui_pages.switch2.setChecked(self.default_settings['switch_value'])
+        self.switch_value2 = self.default_settings['switch_value']
+        self.ui.ui_pages.switch3.setChecked(self.default_settings['switch_value'])
+        self.switch_value3 = self.default_settings['switch_value']
+        self.ui.ui_pages.switch4.setChecked(self.default_settings['switch_value'])
+        self.switch_value4 = self.default_settings['switch_value']
+        
 
+        QMessageBox.information(None, "Restaurar configuração", "Restaurado com sucesso")
+        self.report(f"{self.data_hora()} / Configurações restauradas")
+        self.restore_control = False
+    
+    def saveSettings(self):
+        str_brilho = str(self.brilho)
+        str_contraste = str(self.contraste)
+        str_index = str(self.index)
+        str_switch_value = str(self.switch_value)
+        str_switch_value2 = str(self.switch_value2)
+        str_switch_value3 = str(self.switch_value3)
+        str_switch_value4 = str(self.switch_value4)
 
+        # Configurações personalizadas
+        self.settings['Configuracoes'] = {
+            'brilho': str_brilho,
+            'contraste': str_contraste,
+            'index': str_index,
+            'switch_value': str_switch_value,
+            'switch_value2': str_switch_value2,
+            'switch_value3': str_switch_value3,
+            'switch_value4': str_switch_value4,
+        }
+
+        file_name, _ = QFileDialog.getSaveFileName(self, "Salvar Configurações", "", "Arquivos de Configuração (*.ini);;Todos os Arquivos (*)")
+
+        if file_name:
+            # Salvar as configurações em um arquivo
+            with open(file_name, 'w') as configfile:
+                self.settings.write(configfile)
+            QMessageBox.information(None, "Informação", "Configurações salvas com sucesso.")
+    
+    def loadSettings(self):
+        file_name, _ = QFileDialog.getOpenFileName(self, "Carregar Configurações", "", "Arquivos de Configuração (*.ini);;Todos os Arquivos (*)")
+
+        if file_name:
+            # Carregar configurações de um arquivo
+            try:
+                self.settings.read(file_name)
+                self.ui.ui_pages.slider.setValue(self.settings.getint('Configuracoes', 'brilho'))
+                self.ui.ui_pages.slider2.setValue(self.settings.getint('Configuracoes', 'contraste'))
+                self.ui.ui_pages.combobox.setCurrentIndex(self.settings.getint('Configuracoes', 'index'))
+                self.ui.ui_pages.switch.setChecked(self.settings.getboolean('Configuracoes', 'switch_value'))
+                self.switch_value = self.settings.getboolean('Configuracoes', 'switch_value')
+                self.ui.ui_pages.switch2.setChecked(self.settings.getboolean('Configuracoes', 'switch_value2'))
+                self.switch_value2 = self.settings.getboolean('Configuracoes', 'switch_value2')
+                self.ui.ui_pages.switch3.setChecked(self.settings.getboolean('Configuracoes', 'switch_value3'))
+                self.switch_value3 = self.settings.getboolean('Configuracoes', 'switch_value3')
+                self.ui.ui_pages.switch4.setChecked(self.settings.getboolean('Configuracoes', 'switch_value4'))
+                self.switch_value4 = self.settings.getboolean('Configuracoes', 'switch_value4')
+            except FileNotFoundError:
+                QMessageBox.warning(None, "Aviso", "O arquivo de configuração não foi encontrado.")
+        
 # Inicilização da IDE
 if __name__ == "__main__":
     app = QApplication(sys.argv)

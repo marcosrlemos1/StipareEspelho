@@ -47,7 +47,7 @@ class Ui_StackedWidget(object):
 
         #cereate a combobox
 
-        self.label3 = QLabel("Selecione uma opção:")
+        self.label3 = QLabel("Escala de super resolução:")
         self.verticalLayout.addWidget(self.label3)
 
         self.combobox = QComboBox()
@@ -68,8 +68,7 @@ class Ui_StackedWidget(object):
                         color: white;
                     }
                 """)
-        self.combobox.addItems(['Escala da super resolução', 'ESPCN_x2.pb', 'ESPCN_x3.pb', 'ESPCN_x4.pb'])
-        self.combobox.setItemData(0, Qt.ItemIsEnabled, Qt.UserRole - 1)
+        self.combobox.addItems(['Desativado', 'ESPCN_x2.pb', 'ESPCN_x3.pb', 'ESPCN_x4.pb'])
         self.verticalLayout.addWidget(self.combobox)
         
         #create label: Nitidez
@@ -116,6 +115,9 @@ class Ui_StackedWidget(object):
         StackedWidget.addWidget(self.page2)
         self.retranslateUi(StackedWidget)
         QMetaObject.connectSlotsByName(StackedWidget)
+
+        self.restore_button = PyPushButton("Restaurar Configurações", heigh=25, width=150,border_radius=4)
+        self.verticalLayout_2.addWidget(self.restore_button)
 
 
     def retranslateUi(self, StackedWidget):
