@@ -159,11 +159,15 @@ class UI_MainWindow(object):
 
         self.action1 = QAction("Salvar Imagem")
         self.action2 = QAction("Salvar Log")
-        self.action3 = QAction("Sair")
+        self.action3 = QAction("Salvar Configurações")
+        self.action4 = QAction("Carregar Configurações")
+        self.action5 = QAction("Sair")
 
         self.menu1.addAction(self.action1)
         self.menu1.addAction(self.action2)
         self.menu1.addAction(self.action3)
+        self.menu1.addAction(self.action4)
+        self.menu1.addAction(self.action5)
 
 
         self.file.setMenu(self.menu1)
