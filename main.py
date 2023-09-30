@@ -20,7 +20,7 @@ class MainWindow(QMainWindow):
         #SETUP MAIN WINDOW
         self.ui = UI_MainWindow()
         self.ui.setup_ui(self)
-
+        self.setWindowTitle("Tellescom")
 
         #SHOW APPLICATION
         self.show()
