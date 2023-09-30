@@ -1,33 +1,33 @@
-#IMPORT MODULES
+# IMPORT MODULES
 import sys
 import os
 
-#IMPORT QT_CORE
+# IMPORT QT_CORE
 from qt_core import *
 
-#import opencv
+# import opencv
 import cv2
 
-#IMPORT MAIN WINDOW
+# IMPORT MAIN WINDOW
 from gui.windows.main_window.ui_main_window import UI_MainWindow
 
-#class  MAIN WINDOW
+# class  MAIN WINDOW
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        #SETUP MAIN WINDOW
+        # SETUP MAIN WINDOW
         self.ui = UI_MainWindow()
         self.ui.setup_ui(self)
         self.setWindowTitle("Tellescom")
 
-        #SHOW APPLICATION
+        # SHOW APPLICATION
         self.show()
         self.ui.toggle.setCheckable(False)
         self.ui.toggle.clicked.connect(self.handle_toggle)
 
-        #INITIAL PARAMETERS
+        # INITIAL PARAMETERS
         self.brilho = 49
         self.constraste = 49
         self.selected_option = None
@@ -38,6 +38,7 @@ class MainWindow(QMainWindow):
         self.switch_value = False
         self.switch_value2 = False
         self.switch_value3 = False
+        self.switch_value4 = False
 
         sys.stdout = self
         self.log_messages = []
@@ -48,12 +49,13 @@ class MainWindow(QMainWindow):
         self.ui.ui_pages.switch.setEnabled(False)
         self.ui.ui_pages.switch2.setEnabled(False)
         self.ui.ui_pages.switch3.setEnabled(False)
+        self.ui.ui_pages.switch4.setEnabled(False)
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.video_frame)
         self.timer.timeout.connect(self.update_label)
         self.timer.timeout.connect(self.tratamento_frame)
-        self.timer.start(30) # Atualiza o frame a cada 30 milissegundos
+        self.timer.start(30)  # Atualiza o frame a cada 30 milissegundos
 
         self.ui.ui_pages.combobox.currentIndexChanged.connect(self.combobox_selection_changed)  # Conectar o sinal ao método
         self.ui.ui_pages.slider.valueChanged.connect(self.slider_value_changed)
@@ -61,15 +63,16 @@ class MainWindow(QMainWindow):
         self.ui.ui_pages.switch.clicked.connect(self.switch_changed)
         self.ui.ui_pages.switch2.clicked.connect(self.switch_changed2)
         self.ui.ui_pages.switch3.clicked.connect(self.switch_changed3)
+        self.ui.ui_pages.switch4.clicked.connect(self.switch_changed4)
 
-        self.data_hora2 =self.update_label()
+        self.data_hora2 = self.update_label()
 
         self.ui.toggle2.clicked.connect(self.show_page_2)
         self.ui.toggle.clicked.connect(self.show_page_1)
 
         self.ui.action1.triggered.connect(self.save_image)
         self.ui.action2.triggered.connect(self.save_log)
-        self.ui.action3.triggered.connect(self.exit_application)
+        self.ui.action5.triggered.connect(self.exit_application)
 
     def show_page_1(self):
         self.ui.paginas.setCurrentWidget(self.ui.ui_pages.page1)
@@ -82,22 +85,22 @@ class MainWindow(QMainWindow):
         formatted_datetime = atual.toString("dd/MM/yyyy - hh:mm:ss")
         self.ui.label_status.setText("STATUS: " + formatted_datetime)
 
-    #função responsavel para ativar e desativar a camera e botão
+    # função responsavel para ativar e desativar a camera e botão
     def handle_toggle(self):
-        #camera desativada e botão desativado
+        # camera desativada e botão desativado
         if self.ui.toggle.isChecked() and self.camera_ativa == True:
             self.ui.toggle.setStyleSheet(
                 "QPushButton:hover {"
-                "background-color: #3E4145;" 
+                "background-color: #3E4145;"
                 "}"
-                )
-            
+            )
+
             self.capture.release()  # Libera a câmera
             self.capture = None
             self.camera_ativa = False
             self.report(f"{self.data_hora()} / Câmera desativada")
-        
-        #camera ativada e botão ativado
+
+        # camera ativada e botão ativado
         else:
             self.ui.toggle.setCheckable(True)
             self.camera_ativa = True
@@ -112,7 +115,7 @@ class MainWindow(QMainWindow):
                 self.frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)  # Converte para RGB
                 return self.frame
             else:
-                QMessageBox.warning(None, "Sem frame", "A câmera não está retornando frame.")
+                QMessageBox.warning(None, "Sem frame","A câmera não está retornando frame.")
                 self.capture = None
                 self.ui.toggle.setCheckable(True)
 
@@ -125,18 +128,23 @@ class MainWindow(QMainWindow):
             self.ui.ui_pages.switch.setEnabled(True)
             self.ui.ui_pages.switch2.setEnabled(True)
             self.ui.ui_pages.switch3.setEnabled(True)
+            self.ui.ui_pages.switch4.setEnabled(True)
+
             # Define as dimensões desejadas para exibição
-            target_width, target_height = 800, 600
+            target_width, target_height = 420, 360
 
             # Redimensiona o quadro para as dimensões desejadas
-            resized_frame = cv2.resize(self.frame_tratado, (target_width, target_height))
+            resized_frame = cv2.resize(
+                self.frame_tratado, (target_width, target_height))
 
             # Converte o quadro redimensionado em uma imagem QImage
-            image = QImage(resized_frame.data, target_width, target_height, QImage.Format_RGB888)
+            image = QImage(resized_frame.data, target_width,
+                           target_height, QImage.Format_RGB888)
             pixmap = QPixmap.fromImage(image)
 
             # Redimensiona a pixmap para a exibição sem cortar
-            pixmap = pixmap.scaled(target_width, target_height, Qt.AspectRatioMode.KeepAspectRatio)
+            pixmap = pixmap.scaled(
+                target_width, target_height, Qt.AspectRatioMode.KeepAspectRatio)
 
             self.ui.label_camera.setPixmap(pixmap)
             self.ui.label_camera.setFixedSize(target_width, target_height)
@@ -147,18 +155,22 @@ class MainWindow(QMainWindow):
             self.ui.ui_pages.switch.setEnabled(False)
             self.ui.ui_pages.switch2.setEnabled(False)
             self.ui.ui_pages.switch3.setEnabled(False)
+            self.ui.ui_pages.switch4.setEnabled(False)
+
             # Define as dimensões desejadas para exibição
             target_width, target_height = 480, 360
 
             # Cria uma imagem preta com as dimensões desejadas
-            dark_frame = QImage(target_width, target_height, QImage.Format_RGB888)
+            dark_frame = QImage(target_width, target_height,
+                                QImage.Format_RGB888)
             dark_frame.fill(Qt.black)
 
             # Exibe o quadro escuro
             pixmap = QPixmap.fromImage(dark_frame)
 
             # Redimensiona a pixmap para a exibição sem cortar
-            pixmap = pixmap.scaled(target_width, target_height, Qt.AspectRatioMode.KeepAspectRatio)
+            pixmap = pixmap.scaled(
+                target_width, target_height, Qt.AspectRatioMode.KeepAspectRatio)
 
             self.ui.label_camera.setPixmap(pixmap)
             self.ui.label_camera.setFixedSize(target_width, target_height)
@@ -167,11 +179,12 @@ class MainWindow(QMainWindow):
         brilho = (((brilho + 1)-50)/50)*127
         contraste = ((contraste + 1)*2)/100
         # Aplicar a transformação linear de ajuste de brilho e contraste
-        imagem_ajustada = cv2.convertScaleAbs(imagem, alpha=contraste, beta=brilho)
+        imagem_ajustada = cv2.convertScaleAbs(
+            imagem, alpha=contraste, beta=brilho)
 
         return imagem_ajustada
 
-    # Aplicando super-resolução - ESPCN 
+    # Aplicando super-resolução - ESPCN
     def super_resolucao(self, imagem, path, index):
         sr = cv2.dnn_superres.DnnSuperResImpl_create()
         sr.readModel(path)
@@ -179,8 +192,8 @@ class MainWindow(QMainWindow):
         result_sr = sr.upsample(imagem)
 
         return result_sr
-    
-    #Aplicação de equalização por histograma
+
+    # Aplicação de equalização por histograma
     def histogram_equalization(self, imagem):
         canal_azul, canal_verde, canal_vermelho = cv2.split(imagem)
         # Aplicar a equalização de histograma a cada canal
@@ -188,14 +201,16 @@ class MainWindow(QMainWindow):
         canal_verde_equalizado = cv2.equalizeHist(canal_verde)
         canal_vermelho_equalizado = cv2.equalizeHist(canal_vermelho)
         # Mesclar os canais equalizados para obter a imagem colorida final
-        imagem_equalizada = cv2.merge((canal_azul_equalizado, canal_verde_equalizado, canal_vermelho_equalizado))
-    
+        imagem_equalizada = cv2.merge(
+            (canal_azul_equalizado, canal_verde_equalizado, canal_vermelho_equalizado))
+
         return imagem_equalizada
-    
-    #Aplicação de filtro passa baixa
+
+    # Aplicação de filtro passa baixa
     def passa_baixa(self, imagem):
         kernel_size = (5, 5)  # Tamanho do kernel
-        filtro_passa_baixa = np.ones(kernel_size, dtype=np.float32) / (kernel_size[0] * kernel_size[1])
+        filtro_passa_baixa = np.ones(
+            kernel_size, dtype=np.float32) / (kernel_size[0] * kernel_size[1])
 
         # Aplicar o filtro passa-baixa
         imagem_suavizada = cv2.filter2D(imagem, -1, filtro_passa_baixa)
@@ -209,36 +224,52 @@ class MainWindow(QMainWindow):
         canal_vermelho = cv2.medianBlur(imagem[:, :, 2], 5)
 
         # Mesclar os canais para obter a imagem suavizada
-        imagem_suavizada_m = cv2.merge((canal_azul, canal_verde, canal_vermelho))
+        imagem_suavizada_m = cv2.merge(
+            (canal_azul, canal_verde, canal_vermelho))
 
         return imagem_suavizada_m
 
-    #Função pra retornar o indice do Combobox
+    def nitidez(self, imagem):
+        # Crie um kernel de nitidez
+        kernel = np.array([[-1, -1, -1],
+                           [-1, 9, -1],
+                           [-1, -1, -1]])
+
+        # Aplique o filtro de nitidez à imagem
+        imagem_nitida = cv2.filter2D(imagem, -1, kernel)
+
+        return imagem_nitida
+
+    # Função pra retornar o indice do Combobox
     def combobox_selection_changed(self, index):
         self.index = index
-        self.selected_option = 'ESPCN_SR/'+self.ui.ui_pages.combobox.currentText()  # Obter a opção selecionada
+        self.selected_option = 'ESPCN_SR/' + \
+            self.ui.ui_pages.combobox.currentText()  # Obter a opção selecionada
         self.control = True
-        self.report(f"{self.data_hora()} / Escala de super resolução mudou para {self.ui.ui_pages.combobox.currentText()}")
+        self.report(
+            f"{self.data_hora()} / Escala de super resolução mudou para {self.ui.ui_pages.combobox.currentText()}")
 
-    #Função para retornar o valor do brilho
+    # Função para retornar o valor do brilho
     def slider_value_changed(self, value):
         self.brilho = value
         self.ui.ui_pages.label.setText(f"BRILHO : {(value+1)-50}")
-    
-    #Função para retornar o valor do contraste
+
+    # Função para retornar o valor do contraste
     def slider_value_changed2(self, value2):
         self.constraste = value2
         self.ui.ui_pages.label2.setText(f"CONTRASTE : {(value2+1)-50}")
-    
-    #Função para retornar o valor do botão EH
+
+    # Função para retornar o valor do botão EH
     def switch_changed(self, switch_value):
         self.switch_value = switch_value
         if switch_value is True:
-            self.report(f"{self.data_hora()} / Equilização por histograma ativado")
+            self.report(
+                f"{self.data_hora()} / Equilização por histograma ativado")
         else:
-            self.report(f"{self.data_hora()} / Equilização por histograma desativado")
-    
-    #Função para retornar o valor do botão FPB
+            self.report(
+                f"{self.data_hora()} / Equilização por histograma desativado")
+
+    # Função para retornar o valor do botão FPB
     def switch_changed2(self, switch_value2):
         self.switch_value2 = switch_value2
 
@@ -247,7 +278,7 @@ class MainWindow(QMainWindow):
         else:
             self.report(f"{self.data_hora()} / Filtro passa-baixa desativado")
 
-    #Função para retornar o valor do botão FM
+    # Função para retornar o valor do botão FM
     def switch_changed3(self, switch_value3):
         self.switch_value3 = switch_value3
 
@@ -255,42 +286,53 @@ class MainWindow(QMainWindow):
             self.report(f"{self.data_hora()} / Filtro por mediana ativado")
         else:
             self.report(f"{self.data_hora()} / Filtro por mediana desativado")
-            
 
-    #Função de tratamento de frame com correção de iluminação e super resolução
+    # Função para retornar o valor do botão FM
+    def switch_changed4(self, switch_value4):
+        self.switch_value4 = switch_value4
+
+        if switch_value4 is True:
+            self.report(f"{self.data_hora()} / Nitidez ativada")
+        else:
+            self.report(f"{self.data_hora()} / Nitidez desativada")
+
+    # Função de tratamento de frame com correção de iluminação e super resolução
     def tratamento_frame(self):
-        self.frame_tratado = self.brilho_contraste(self.frame, self.brilho, self.constraste)
+        self.frame_tratado = self.brilho_contraste(
+            self.frame, self.brilho, self.constraste)
         if self.control is True:
             self.frame_tratado = self.super_resolucao(self.frame_tratado, self.selected_option, self.index)
-            self.control = False
         if self.switch_value is True:
             self.frame_tratado = self.histogram_equalization(self.frame_tratado)
         if self.switch_value2 is True:
             self.frame_tratado = self.passa_baixa(self.frame_tratado)
         if self.switch_value3 is True:
             self.frame_tratado = self.filtro_mediana(self.frame_tratado)
-        
-    #Função de mensagem para o console 
+        if self.switch_value4 is True:
+            self.frame_tratado = self.nitidez(self.frame_tratado)
+
+    # Função de mensagem para o console
     def report(self, message):
         # Adiciona uma mensagem de reportagem ao console
         self.write(message + '\n')
-    
-    #Funcão para salvar dados do terminal
+
+    # Funcão para salvar dados do terminal
     def save_log(self):
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
         options |= QFileDialog.HideNameFilterDetails
 
-        file_name, _ = QFileDialog.getSaveFileName(self,"Salvar Log","","Arquivos de Texto (*.txt);;Todos os Arquivos (*)", options=options)
+        file_name, _ = QFileDialog.getSaveFileName(
+            self, "Salvar Log", "", "Arquivos de Texto (*.txt);;Todos os Arquivos (*)", options=options)
 
         if file_name:
             with open(file_name, 'w') as log_file:
                 # Escreve todas as mensagens armazenadas no arquivo
                 log_file.write('\n'.join(self.log_messages))
-    
+
      # Substitua a função write para redirecionar a saída para o QTextEdit
     def write(self, text):
-        text_with_newline = text.rstrip() + '\n' 
+        text_with_newline = text.rstrip() + '\n'
         self.ui.text_edit.moveCursor(QTextCursor.End)
         self.ui.text_edit.insertPlainText(text)
         self.ui.text_edit.moveCursor(QTextCursor.End)
@@ -298,34 +340,38 @@ class MainWindow(QMainWindow):
         # Adicione a mensagem à lista de mensagens de log
         self.log_messages.append(text.strip())
 
-    #Função para retornar a data e a hora atual
+    # Função para retornar a data e a hora atual
     def data_hora(self):
         atual = datetime.now()
 
         return atual.strftime("%d/%m/%Y - %H:%M")
-    
+
     def exit_application(self):
         # Exibir um diálogo de confirmação antes de sair
-        reply = QMessageBox.question(self, 'Exit', 'Are you sure you want to exit?', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        reply = QMessageBox.question(
+            self, 'Exit', 'Are you sure you want to exit?', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             QApplication.quit()
 
-    #Função para salvar um frame da imagem
+    # Função para salvar um frame da imagem
     def save_image(self):
         if self.camera_ativa == True:
-            self.frame_tratado = cv2.cvtColor(self.frame_tratado, cv2.COLOR_BGR2RGB)
+            self.frame_tratado = cv2.cvtColor(
+                self.frame_tratado, cv2.COLOR_BGR2RGB)
             # Solicitar ao usuário um local e nome de arquivo para salvar a imagem
-            file_path, _ = QFileDialog.getSaveFileName(self, "Save Image", "", "PNG Files (*.png)")
+            file_path, _ = QFileDialog.getSaveFileName(
+                self, "Save Image", "", "PNG Files (*.png)")
 
             # Salvar a imagem capturada como arquivo PNG usando o OpenCV
             if file_path:
                 cv2.imwrite(file_path, self.frame_tratado)
 
         else:
-            QMessageBox.warning(None,"sem frame", "A câmera não está ativa.")
-            
-#Inicilização da IDE
-if __name__=="__main__":
+            QMessageBox.warning(None, "sem frame", "A câmera não está ativa.")
+
+
+# Inicilização da IDE
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainWindow()
     sys.exit(app.exec())

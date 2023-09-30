@@ -44,7 +44,7 @@ class Ui_StackedWidget(object):
         self.verticalLayout.addWidget(self.label2)
         self.slider2 = PySlider()
         self.verticalLayout.addWidget(self.slider2)
-        
+
         #cereate a combobox
 
         self.label3 = QLabel("Selecione uma opção:")
@@ -72,6 +72,13 @@ class Ui_StackedWidget(object):
         self.combobox.setItemData(0, Qt.ItemIsEnabled, Qt.UserRole - 1)
         self.verticalLayout.addWidget(self.combobox)
         
+        #create label: Nitidez
+        self.label_hist4 = QLabel("Nitidez")
+        #create a switch
+        self.switch4 = PyToggle()
+        self.verticalLayout.addWidget(self.label_hist4)
+        self.verticalLayout.addWidget(self.switch4)
+
         #create label: equalization for histogram
         self.label_hist = QLabel("Equalização de Histograma")
         #create a switch
