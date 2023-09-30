@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
         self.ui.toggle.setCheckable(False)
         self.ui.toggle.clicked.connect(self.handle_toggle)
 
-        #INITIAL PARAMETERS 
+        #INITIAL PARAMETERS
         self.brilho = 49
         self.constraste = 49
         self.selected_option = None
@@ -95,6 +95,7 @@ class MainWindow(QMainWindow):
             self.capture.release()  # Libera a câmera
             self.capture = None
             self.camera_ativa = False
+            self.report(f"{self.data_hora()} / Câmera desativada")
         
         #camera ativada e botão ativado
         else:
@@ -102,6 +103,7 @@ class MainWindow(QMainWindow):
             self.camera_ativa = True
             self.ui.toggle.setStyleSheet("background-color: red")
             self.capture = cv2.VideoCapture(0)
+            self.report(f"{self.data_hora()} / Câmera ativada")
 
     def capturar_frame(self):
         if self.capture is not None:
@@ -231,14 +233,29 @@ class MainWindow(QMainWindow):
     #Função para retornar o valor do botão EH
     def switch_changed(self, switch_value):
         self.switch_value = switch_value
+        if switch_value is True:
+            self.report(f"{self.data_hora()} / Equilização por histograma ativado")
+        else:
+            self.report(f"{self.data_hora()} / Equilização por histograma desativado")
     
     #Função para retornar o valor do botão FPB
     def switch_changed2(self, switch_value2):
         self.switch_value2 = switch_value2
 
+        if switch_value2 is True:
+            self.report(f"{self.data_hora()} / Filtro passa-baixa ativado")
+        else:
+            self.report(f"{self.data_hora()} / Filtro passa-baixa desativado")
+
     #Função para retornar o valor do botão FM
     def switch_changed3(self, switch_value3):
         self.switch_value3 = switch_value3
+
+        if switch_value3 is True:
+            self.report(f"{self.data_hora()} / Filtro por mediana ativado")
+        else:
+            self.report(f"{self.data_hora()} / Filtro por mediana desativado")
+            
 
     #Função de tratamento de frame com correção de iluminação e super resolução
     def tratamento_frame(self):
