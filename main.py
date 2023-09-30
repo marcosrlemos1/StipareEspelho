@@ -263,7 +263,7 @@ class MainWindow(QMainWindow):
         if self.index == 0 and self.restore_control is False:
             self.report(f"{self.data_hora()} / Escala de super resolução desativada")
         if self.index != 0 and self.restore_control is False:
-            self.selected_option = 'ESPCN_SR/' + self.ui.ui_pages.combobox.currentText()  # Obter a opção selecionada
+            self.selected_option = 'ESPCN/' + self.ui.ui_pages.combobox.currentText()  # Obter a opção selecionada
             self.report(f"{self.data_hora()} / Escala de super resolução mudou para {self.ui.ui_pages.combobox.currentText()}")
 
     # Função para retornar o valor do brilho
@@ -375,15 +375,14 @@ class MainWindow(QMainWindow):
     # Função para salvar um frame da imagem
     def save_image(self):
         if self.camera_ativa == True:
-            self.frame_tratado = cv2.cvtColor(
-                self.frame_tratado, cv2.COLOR_BGR2RGB)
+            self.frame_rgb = cv2.cvtColor(self.frame_tratado, cv2.COLOR_BGR2RGB)
             # Solicitar ao usuário um local e nome de arquivo para salvar a imagem
             file_path, _ = QFileDialog.getSaveFileName(
                 self, "Save Image", "", "PNG Files (*.png)")
 
             # Salvar a imagem capturada como arquivo PNG usando o OpenCV
             if file_path:
-                cv2.imwrite(file_path, self.frame_tratado)
+                cv2.imwrite(file_path, self.frame_rgb)
 
         else:
             QMessageBox.warning(None, "sem frame", "A câmera não está ativa.")
