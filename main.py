@@ -14,6 +14,107 @@ import cv2
 from gui.windows.main_window.ui_main_window import UI_MainWindow
 
 # class  MAIN WINDOW
+class NovaJanela(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Nova Janela")
+        self.setGeometry(100, 100, 1200, 720)
+
+        self.selection_start = None
+        self.selection_end = None
+
+        self.central_widget = QWidget(self)
+        self.setCentralWidget(self.central_widget)
+
+        self.layout = QVBoxLayout(self.central_widget)
+        self.label = QLabel(self)
+        self.layout.addWidget(self.label)
+
+        self.label.mousePressEvent = self.mouse_press_event
+        self.label.mouseReleaseEvent = self.mouse_release_event
+        self.label.mouseMoveEvent = self.mouse_move_event
+
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update)
+        self.timer.timeout.connect(self.mostrar_frame_camera)
+        self.timer.start(1000 / 30)  # Atualização do feed da câmera a cada 30 milissegundos
+
+        self.capture = cv2.VideoCapture(0)
+
+    def mostrar_frame_camera(self):
+        ret, frame = self.capture.read()
+
+        if ret:
+            # Desenhe o retângulo na área de visualização da câmera, se houver uma seleção
+            if self.selection_start and self.selection_end:
+                x1, y1 = self.selection_start.x(), self.selection_start.y()
+                x2, y2 = self.selection_end.x(), self.selection_end.y()
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)  # Desenhe o retângulo vermelho
+
+            # Converta o quadro do OpenCV para um formato exibível pelo PySide6
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            height, width, channel = frame.shape
+            bytes_per_line = 3 * width
+            qt_image = QImage(frame.data, width, height, bytes_per_line, QImage.Format_RGB888)
+
+            # Exiba o quadro na janela
+            pixmap = QPixmap.fromImage(qt_image)
+            self.label.setPixmap(pixmap)
+            self.label.adjustSize()
+
+    def mouse_press_event(self, event):
+        if event.button() == Qt.LeftButton:
+            self.selection_start = event.pos()
+            self.selection_end = None
+            self.update()
+
+    def mouse_release_event(self, event):
+        if event.button() == Qt.LeftButton:
+            self.selection_end = event.pos()
+            self.update()
+
+            # Calcule a área em relação à resolução da câmera
+            if self.selection_start and self.selection_end:
+                x1, y1 = self.selection_start.x(), self.selection_start.y()
+                x2, y2 = self.selection_end.x(), self.selection_end.y()
+
+                width = abs(x2 - x1)
+                height = abs(y2 - y1)
+
+                # Mostre um diálogo de mensagem perguntando ao usuário o que fazer
+                msg_box = QMessageBox()
+                msg_box.setWindowTitle("Seleção Concluída")
+                msg_box.setText(f"Área selecionada: {x1},{y1},{width},{height}")
+                msg_box.setStandardButtons(QMessageBox.Save | QMessageBox.Retry)
+                msg_box.setDefaultButton(QMessageBox.Save)
+                choice = msg_box.exec()
+
+                if choice == QMessageBox.Save:
+                    self.save_selection(x1, y1, width, height)  # Implemente a lógica para salvar a seleção aqui
+                elif choice == QMessageBox.Retry:
+                    self.reset_selection()
+
+    def mouse_move_event(self, event):
+        # Atualize a seleção em tempo real enquanto o mouse se move
+        if event.buttons() == Qt.LeftButton:
+            self.selection_end = event.pos()
+            self.update()
+
+    def save_selection(self, x, y, width, height):
+        # Implemente a lógica para salvar a seleção aqui
+        print(f"Seleção salva! X: {x}, Y: {y}, Largura: {width}, Altura: {height}")
+
+    def reset_selection(self):
+        # Reinicie a seleção
+        self.selection_start = None
+        self.selection_end = None
+        self.update()
+
+    def closeEvent(self, event):
+        self.capture.release()  # Libere a câmera antes de fechar a janela
+        event.accept()
+
+    
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -88,6 +189,7 @@ class MainWindow(QMainWindow):
         self.ui.ui_pages.switch3.clicked.connect(self.switch_changed3)
         self.ui.ui_pages.switch4.clicked.connect(self.switch_changed4)
         self.ui.ui_pages.restore_button.clicked.connect(self.restore_defaults)
+        self.ui.ui_pages.selection_frame.clicked.connect(self.NovaJanela)
         self.ui.edit.clicked.connect(self.restore_defaults)
 
         self.data_hora2 = self.update_label()
@@ -535,7 +637,11 @@ class MainWindow(QMainWindow):
             'switch_value3': str_switch_value3,
             'switch_value4': str_switch_value4,
         }
-        
+
+    def NovaJanela(self):
+        nova_janela = NovaJanela()
+        nova_janela.show()
+     
 # Inicilização da IDE
 if __name__ == "__main__":
     app = QApplication(sys.argv)
