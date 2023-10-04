@@ -14,14 +14,14 @@ import cv2
 from gui.windows.main_window.ui_main_window import UI_MainWindow
 
 # class  MAIN WINDOW
-class NovaJanela(QMainWindow):
+class Frame_Cam(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Nova Janela")
-        self.setGeometry(100, 100, 1200, 720)
 
         self.selection_start = None
         self.selection_end = None
+        self.control_frameplace = False
 
         self.central_widget = QWidget(self)
         self.setCentralWidget(self.central_widget)
@@ -38,7 +38,6 @@ class NovaJanela(QMainWindow):
         self.timer.timeout.connect(self.update)
         self.timer.timeout.connect(self.mostrar_frame_camera)
         self.timer.start(1000 / 30)  # Atualização do feed da câmera a cada 30 milissegundos
-
         self.capture = cv2.VideoCapture(0)
 
     def mostrar_frame_camera(self):
@@ -53,9 +52,10 @@ class NovaJanela(QMainWindow):
 
             # Converta o quadro do OpenCV para um formato exibível pelo PySide6
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            height, width, channel = frame.shape
-            bytes_per_line = 3 * width
-            qt_image = QImage(frame.data, width, height, bytes_per_line, QImage.Format_RGB888)
+            self.height_cam, self.width_cam, channel = frame.shape
+            self.setGeometry(100, 100, self.width_cam, self.height_cam)
+            bytes_per_line = 3 * self.width_cam
+            qt_image = QImage(frame.data, self.width_cam, self.height_cam, bytes_per_line, QImage.Format_RGB888)
 
             # Exiba o quadro na janela
             pixmap = QPixmap.fromImage(qt_image)
@@ -84,13 +84,14 @@ class NovaJanela(QMainWindow):
                 # Mostre um diálogo de mensagem perguntando ao usuário o que fazer
                 msg_box = QMessageBox()
                 msg_box.setWindowTitle("Seleção Concluída")
-                msg_box.setText(f"Área selecionada: {x1},{y1},{width},{height}")
+                msg_box.setText(f"Área selecionada: X:{x1}, Y:{y1}, Width:{width}, Height:{height}")
                 msg_box.setStandardButtons(QMessageBox.Save | QMessageBox.Retry)
                 msg_box.setDefaultButton(QMessageBox.Save)
                 choice = msg_box.exec()
 
                 if choice == QMessageBox.Save:
-                    self.save_selection(x1, y1, width, height)  # Implemente a lógica para salvar a seleção aqui
+                    self.save_selection(x1, y1, width, height)
+                    self.closeEvent(event)
                 elif choice == QMessageBox.Retry:
                     self.reset_selection()
 
@@ -101,27 +102,27 @@ class NovaJanela(QMainWindow):
             self.update()
 
     def save_selection(self, x, y, width, height):
-        # Implemente a lógica para salvar a seleção aqui
-        print(f"Seleção salva! X: {x}, Y: {y}, Largura: {width}, Altura: {height}")
+        self.control_frameplace = True
+        self.posx = x
+        self.posy = y
+        self.width_capture = width
+        self.height_capture = height
+        self.capture.release()
+        self.close()
 
     def reset_selection(self):
         # Reinicie a seleção
         self.selection_start = None
         self.selection_end = None
         self.update()
-
-    def closeEvent(self, event):
-        self.capture.release()  # Libere a câmera antes de fechar a janela
-        event.accept()
-
-    
-
+        
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
         # SETUP MAIN WINDOW
         self.ui = UI_MainWindow()
+        self.nw = Frame_Cam()
         self.ui.setup_ui(self)
         self.setWindowTitle("Tellescom")
 
@@ -242,6 +243,8 @@ class MainWindow(QMainWindow):
             ret, self.frame = self.capture.read()  # Captura um frame da câmera
             if ret:
                 self.frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)  # Converte para RGB
+                if self.nw.control_frameplace is True:
+                    self.frame = self.frame[self.nw.posy+self.nw.height_capture, self.nw.posx+self.nw.height_capture]
                 return self.frame
             else:
                 QMessageBox.warning(None, "Sem frame","A câmera não está retornando frame.")
@@ -639,7 +642,7 @@ class MainWindow(QMainWindow):
         }
 
     def NovaJanela(self):
-        nova_janela = NovaJanela()
+        nova_janela = Frame_Cam()
         nova_janela.show()
      
 # Inicilização da IDE
