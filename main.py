@@ -17,11 +17,10 @@ from gui.windows.main_window.ui_main_window import UI_MainWindow
 class Frame_Cam(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Nova Janela")
+        self.setWindowTitle("Selecione a região")
 
         self.selection_start = None
         self.selection_end = None
-        self.control_frameplace = False
 
         self.central_widget = QWidget(self)
         self.setCentralWidget(self.central_widget)
@@ -37,9 +36,9 @@ class Frame_Cam(QMainWindow):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update)
         self.timer.timeout.connect(self.mostrar_frame_camera)
-        self.timer.start(1000 / 30)  # Atualização do feed da câmera a cada 30 milissegundos
-        self.capture = cv2.VideoCapture(0)
-
+        self.timer.start(30)  # Atualização do feed da câmera a cada 30 milissegundos
+        self.capture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+        
     def mostrar_frame_camera(self):
         ret, frame = self.capture.read()
 
@@ -91,7 +90,6 @@ class Frame_Cam(QMainWindow):
 
                 if choice == QMessageBox.Save:
                     self.save_selection(x1, y1, width, height)
-                    self.closeEvent(event)
                 elif choice == QMessageBox.Retry:
                     self.reset_selection()
 
@@ -102,11 +100,6 @@ class Frame_Cam(QMainWindow):
             self.update()
 
     def save_selection(self, x, y, width, height):
-        self.control_frameplace = True
-        self.posx = x
-        self.posy = y
-        self.width_capture = width
-        self.height_capture = height
         self.capture.release()
         self.close()
 
@@ -122,7 +115,7 @@ class MainWindow(QMainWindow):
 
         # SETUP MAIN WINDOW
         self.ui = UI_MainWindow()
-        self.nw = Frame_Cam()
+        self.fc = Frame_Cam()
         self.ui.setup_ui(self)
         self.setWindowTitle("Tellescom")
 
@@ -190,7 +183,7 @@ class MainWindow(QMainWindow):
         self.ui.ui_pages.switch3.clicked.connect(self.switch_changed3)
         self.ui.ui_pages.switch4.clicked.connect(self.switch_changed4)
         self.ui.ui_pages.restore_button.clicked.connect(self.restore_defaults)
-        self.ui.ui_pages.selection_frame.clicked.connect(self.NovaJanela)
+        self.ui.ui_pages.selection_frame.clicked.connect(self.frame_cam)
         self.ui.edit.clicked.connect(self.restore_defaults)
 
         self.data_hora2 = self.update_label()
@@ -235,7 +228,7 @@ class MainWindow(QMainWindow):
             self.ui.toggle.setCheckable(True)
             self.camera_ativa = True
             self.ui.toggle.setStyleSheet("background-color: red")
-            self.capture = cv2.VideoCapture(0)
+            self.capture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
             self.report(f"{self.data_hora()} / Câmera ativada")
 
     def capturar_frame(self):
@@ -243,8 +236,6 @@ class MainWindow(QMainWindow):
             ret, self.frame = self.capture.read()  # Captura um frame da câmera
             if ret:
                 self.frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)  # Converte para RGB
-                if self.nw.control_frameplace is True:
-                    self.frame = self.frame[self.nw.posy+self.nw.height_capture, self.nw.posx+self.nw.height_capture]
                 return self.frame
             else:
                 QMessageBox.warning(None, "Sem frame","A câmera não está retornando frame.")
@@ -641,9 +632,13 @@ class MainWindow(QMainWindow):
             'switch_value4': str_switch_value4,
         }
 
-    def NovaJanela(self):
-        nova_janela = Frame_Cam()
-        nova_janela.show()
+    def frame_cam(self):
+        if self.frame is None:
+            nova_janela = Frame_Cam()
+            nova_janela.show()
+        else:
+            QMessageBox.warning(None, "Desative a Câmera", "Desative a câmera primeiro.")
+
      
 # Inicilização da IDE
 if __name__ == "__main__":
