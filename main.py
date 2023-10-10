@@ -13,6 +13,12 @@ import cv2
 # IMPORT MAIN WINDOW
 from gui.windows.main_window.ui_main_window import UI_MainWindow
 
+control_cam =  False
+x1_cam = None
+y1_cam = None
+x2_cam = None
+y2_cam = None
+
 # class  MAIN WINDOW
 class Frame_Cam(QMainWindow):
     def __init__(self):
@@ -21,6 +27,8 @@ class Frame_Cam(QMainWindow):
 
         self.selection_start = None
         self.selection_end = None
+        self.geometry = True
+        self.capture_frame = None
 
         self.central_widget = QWidget(self)
         self.setCentralWidget(self.central_widget)
@@ -37,29 +45,36 @@ class Frame_Cam(QMainWindow):
         self.timer.timeout.connect(self.update)
         self.timer.timeout.connect(self.mostrar_frame_camera)
         self.timer.start(30)  # Atualização do feed da câmera a cada 30 milissegundos
-        self.capture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+
+        if control_cam is True:
+            self.capture_frame = cv2.VideoCapture(0)
         
     def mostrar_frame_camera(self):
-        ret, frame = self.capture.read()
+        if control_cam is True and self.capture_frame is not None:
+            ret, frame = self.capture_frame.read()
 
-        if ret:
-            # Desenhe o retângulo na área de visualização da câmera, se houver uma seleção
-            if self.selection_start and self.selection_end:
-                x1, y1 = self.selection_start.x(), self.selection_start.y()
-                x2, y2 = self.selection_end.x(), self.selection_end.y()
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)  # Desenhe o retângulo vermelho
+            if ret:
+                # Desenhe o retângulo na área de visualização da câmera, se houver uma seleção
+                if self.selection_start and self.selection_end:
+                    x1, y1 = self.selection_start.x(), self.selection_start.y()
+                    x2, y2 = self.selection_end.x(), self.selection_end.y()
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 1)  # Desenhe o retângulo vermelho
 
-            # Converta o quadro do OpenCV para um formato exibível pelo PySide6
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            self.height_cam, self.width_cam, channel = frame.shape
-            self.setGeometry(100, 100, self.width_cam, self.height_cam)
-            bytes_per_line = 3 * self.width_cam
-            qt_image = QImage(frame.data, self.width_cam, self.height_cam, bytes_per_line, QImage.Format_RGB888)
+                # Converta o quadro do OpenCV para um formato exibível pelo PySide6
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                self.height_cam, self.width_cam, channel = frame.shape
 
-            # Exiba o quadro na janela
-            pixmap = QPixmap.fromImage(qt_image)
-            self.label.setPixmap(pixmap)
-            self.label.adjustSize()
+                if self.geometry is True:
+                    self.setGeometry(100, 100, self.width_cam, self.height_cam)
+                    self.geometry = False
+
+                bytes_per_line = 3 * self.width_cam
+                qt_image = QImage(frame.data, self.width_cam, self.height_cam,bytes_per_line, QImage.Format_RGB888)
+
+                # Exiba o quadro na janela
+                pixmap = QPixmap.fromImage(qt_image)
+                self.label.setPixmap(pixmap)
+                self.label.adjustSize()
 
     def mouse_press_event(self, event):
         if event.button() == Qt.LeftButton:
@@ -89,7 +104,7 @@ class Frame_Cam(QMainWindow):
                 choice = msg_box.exec()
 
                 if choice == QMessageBox.Save:
-                    self.save_selection(x1, y1, width, height)
+                    self.save_selection(x1, y1, x2, y2)
                 elif choice == QMessageBox.Retry:
                     self.reset_selection()
 
@@ -99,8 +114,21 @@ class Frame_Cam(QMainWindow):
             self.selection_end = event.pos()
             self.update()
 
-    def save_selection(self, x, y, width, height):
-        self.capture.release()
+    def save_selection(self, x1, y1, x2, y2):
+        global control_cam
+        control_cam = False
+
+        global x1_cam
+        global y1_cam
+        global x2_cam
+        global y2_cam
+
+        x1_cam = x1
+        y1_cam = y1
+        x2_cam = x2
+        y2_cam = y2
+
+        self.capture_frame.release()
         self.close()
 
     def reset_selection(self):
@@ -115,7 +143,6 @@ class MainWindow(QMainWindow):
 
         # SETUP MAIN WINDOW
         self.ui = UI_MainWindow()
-        self.fc = Frame_Cam()
         self.ui.setup_ui(self)
         self.setWindowTitle("Tellescom")
 
@@ -125,8 +152,7 @@ class MainWindow(QMainWindow):
         self.ui.toggle.clicked.connect(self.handle_toggle)
 
         # INITIAL PARAMETERS
-        self.cam_width = 800
-        self.cam_height = 600
+        self.scale_cam = True
         self.brilho = 49
         self.contraste = 49
         self.selected_option = 0
@@ -228,7 +254,7 @@ class MainWindow(QMainWindow):
             self.ui.toggle.setCheckable(True)
             self.camera_ativa = True
             self.ui.toggle.setStyleSheet("background-color: red")
-            self.capture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            self.capture = cv2.VideoCapture(0)
             self.report(f"{self.data_hora()} / Câmera ativada")
 
     def capturar_frame(self):
@@ -236,6 +262,11 @@ class MainWindow(QMainWindow):
             ret, self.frame = self.capture.read()  # Captura um frame da câmera
             if ret:
                 self.frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)  # Converte para RGB
+                if self.scale_cam is True:
+                    self.height_cam, self.width_cam, channel = self.frame.shape
+                    self.scale_cam = False
+                if x1_cam is not None:
+                    self.frame = self.frame[x1_cam:x2_cam, y1_cam:y2_cam]
                 return self.frame
             else:
                 QMessageBox.warning(None, "Sem frame","A câmera não está retornando frame.")
@@ -254,20 +285,17 @@ class MainWindow(QMainWindow):
             self.ui.ui_pages.switch4.setEnabled(True)
 
             # Define as dimensões desejadas para exibição
-            target_width, target_height = self.cam_width, self.cam_height
+            target_width, target_height = self.width_cam, self.height_cam
 
             # Redimensiona o quadro para as dimensões desejadas
-            resized_frame = cv2.resize(
-                self.frame_tratado, (target_width, target_height))
+            resized_frame = cv2.resize(self.frame_tratado, (target_width, target_height))
 
             # Converte o quadro redimensionado em uma imagem QImage
-            image = QImage(resized_frame.data, target_width,
-                           target_height, QImage.Format_RGB888)
+            image = QImage(resized_frame.data, target_width,target_height,QImage.Format_RGB888)
             pixmap = QPixmap.fromImage(image)
 
             # Redimensiona a pixmap para a exibição sem cortar
-            pixmap = pixmap.scaled(
-                target_width, target_height, Qt.AspectRatioMode.KeepAspectRatio)
+            pixmap = pixmap.scaled(target_width, target_height, Qt.AspectRatioMode.KeepAspectRatio)
 
             self.ui.label_camera.setPixmap(pixmap)
             self.ui.label_camera.setFixedSize(target_width, target_height)
@@ -634,6 +662,8 @@ class MainWindow(QMainWindow):
 
     def frame_cam(self):
         if self.frame is None:
+            global control_cam
+            control_cam = True
             nova_janela = Frame_Cam()
             nova_janela.show()
         else:
