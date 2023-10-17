@@ -16,6 +16,7 @@ x1_cam = None
 y1_cam = None
 x2_cam = None
 y2_cam = None
+frame_tratado = None
 
 # class  MAIN WINDOW
 class Frame_Cam(QMainWindow):
@@ -154,7 +155,6 @@ class MainWindow(QMainWindow):
         self.contraste = 49
         self.selected_option = 0
         self.index = 0
-        self.frame_tratado = None
         self.capture = None
         self.restore_control = False
         self.control_save = False
@@ -272,7 +272,8 @@ class MainWindow(QMainWindow):
 
     def video_frame(self):
         self.frame = self.capturar_frame()
-        if self.frame_tratado is not None:
+        global frame_tratado
+        if frame_tratado is not None:
             self.ui.ui_pages.slider.setEnabled(True)
             self.ui.ui_pages.slider2.setEnabled(True)
             self.ui.ui_pages.combobox.setEnabled(True)
@@ -285,7 +286,7 @@ class MainWindow(QMainWindow):
             target_width, target_height = self.width_cam, self.height_cam
     
             # Redimensiona o quadro para as dimensões desejadas
-            resized_frame = cv2.resize(self.frame_tratado, (target_width, target_height))
+            resized_frame = cv2.resize(frame_tratado, (target_width, target_height))
 
             # Converte o quadro redimensionado em uma imagem QImage
             image = QImage(resized_frame.data, target_width,target_height,QImage.Format_RGB888)
@@ -467,17 +468,18 @@ class MainWindow(QMainWindow):
 
     # Função de tratamento de frame com correção de iluminação e super resolução
     def tratamento_frame(self):
-        self.frame_tratado = self.brilho_contraste(self.frame, self.brilho, self.contraste)
+        global frame_tratado
+        frame_tratado = self.brilho_contraste(self.frame, self.brilho, self.contraste)
         if self.index != 0 and self.frame is not None:
-            self.frame_tratado = self.super_resolucao(self.frame_tratado, self.selected_option, self.index)
+            frame_tratado = self.super_resolucao(frame_tratado, self.selected_option, self.index)
         if self.switch_value is True and self.frame is not None:
-            self.frame_tratado = self.histogram_equalization(self.frame_tratado)
+            frame_tratado = self.histogram_equalization(frame_tratado)
         if self.switch_value2 is True and self.frame is not None:
-            self.frame_tratado = self.passa_baixa(self.frame_tratado)
+            frame_tratado = self.passa_baixa(frame_tratado)
         if self.switch_value3 is True and self.frame is not None:
-            self.frame_tratado = self.filtro_mediana(self.frame_tratado)
+            frame_tratado = self.filtro_mediana(frame_tratado)
         if self.switch_value4 is True and self.frame is not None:
-            self.frame_tratado = self.nitidez(self.frame_tratado)
+            frame_tratado = self.nitidez(frame_tratado)
 
     # Função de mensagem para o console
     def report(self, message):
@@ -551,7 +553,7 @@ class MainWindow(QMainWindow):
     # Função para salvar um frame da imagem
     def save_image(self):
         if self.camera_ativa == True:
-            self.frame_rgb = cv2.cvtColor(self.frame_tratado, cv2.COLOR_BGR2RGB)
+            self.frame_rgb = cv2.cvtColor(frame_tratado, cv2.COLOR_BGR2RGB)
             # Solicitar ao usuário um local e nome de arquivo para salvar a imagem
             file_path, _ = QFileDialog.getSaveFileName(
                 self, "Save Image", "", "PNG Files (*.png)")
