@@ -613,6 +613,7 @@ class MainWindow(QMainWindow):
                 self.settings.write(configfile)
             #QMessageBox.information(None, "Informação", "Configurações salvas com sucesso.")
             self.control_save = True
+            self.report(f"{self.data_hora()} / Configurações Salvas")
 
     #Carrega as configurações        
     def loadSettings(self):
@@ -636,6 +637,7 @@ class MainWindow(QMainWindow):
 
                 self.updateSettings(self.brilho,self.contraste,self.index, self.switch_value, 
                                     self.switch_value2,self.switch_value3,self.switch_value4)
+                self.report(f"{self.data_hora()} / Configurações carregadas")
 
             except FileNotFoundError:
                 QMessageBox.warning(None, "Aviso", "O arquivo de configuração não foi encontrado.")
