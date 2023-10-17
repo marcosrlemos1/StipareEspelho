@@ -10,6 +10,7 @@ from qt_core import *
 # IMPORT MAIN WINDOW
 from gui.windows.main_window.ui_main_window import UI_MainWindow
 
+#GLOBAL VAR
 control_cam =  False
 x1_cam = None
 y1_cam = None
@@ -20,7 +21,7 @@ y2_cam = None
 class Frame_Cam(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Selecione a região")
+        self.setWindowTitle("Selecione a região da câmera")
 
         self.selection_start = None
         self.selection_end = None
@@ -65,8 +66,7 @@ class Frame_Cam(QMainWindow):
                     self.setGeometry(100, 100, self.width_cam, self.height_cam)
                     self.geometry = False
 
-                bytes_per_line = 3 * self.width_cam
-                qt_image = QImage(frame.data, self.width_cam, self.height_cam,bytes_per_line, QImage.Format_RGB888)
+                qt_image = QImage(frame.data, self.width_cam, self.height_cam, QImage.Format_RGB888)
 
                 # Exiba o quadro na janela
                 pixmap = QPixmap.fromImage(qt_image)
@@ -263,7 +263,7 @@ class MainWindow(QMainWindow):
                     self.height_cam, self.width_cam, channel = self.frame.shape
                     self.scale_cam = False
                 if x1_cam is not None:
-                    self.frame = self.frame[x1_cam:x2_cam, y1_cam:y2_cam]
+                    self.frame = self.frame[y1_cam:y2_cam, x1_cam:x2_cam]
                 return self.frame
             else:
                 QMessageBox.warning(None, "Sem frame","A câmera não está retornando frame.")
@@ -283,7 +283,7 @@ class MainWindow(QMainWindow):
 
             # Define as dimensões desejadas para exibição
             target_width, target_height = self.width_cam, self.height_cam
-
+    
             # Redimensiona o quadro para as dimensões desejadas
             resized_frame = cv2.resize(self.frame_tratado, (target_width, target_height))
 
@@ -563,8 +563,8 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.warning(None, "sem frame", "A câmera não está ativa.")
     
+    # Restaura as configurações padrões
     def restore_defaults(self):
-        # Restaura as configurações padrões
         self.restore_control = True
         self.ui.ui_pages.slider.setValue(self.default_settings.getint('Configuracoes', 'brilho'))
         self.ui.ui_pages.slider2.setValue(self.default_settings.getint('Configuracoes', 'contraste'))
@@ -583,6 +583,7 @@ class MainWindow(QMainWindow):
         self.report(f"{self.data_hora()} / Configurações restauradas")
         self.restore_control = False
     
+    #Salva as configurações
     def saveSettings(self):
         file_name, _ = QFileDialog.getSaveFileName(self, "Salvar Configurações", "", "Arquivos de Configuração (*.ini);;Todos os Arquivos (*)")
 
@@ -610,7 +611,8 @@ class MainWindow(QMainWindow):
                 self.settings.write(configfile)
             #QMessageBox.information(None, "Informação", "Configurações salvas com sucesso.")
             self.control_save = True
-            
+
+    #Carrega as configurações        
     def loadSettings(self):
         file_name, _ = QFileDialog.getOpenFileName(self, "Carregar Configurações", "", "Arquivos de Configuração (*.ini);;Todos os Arquivos (*)")
 
@@ -636,6 +638,7 @@ class MainWindow(QMainWindow):
             except FileNotFoundError:
                 QMessageBox.warning(None, "Aviso", "O arquivo de configuração não foi encontrado.")
     
+    #Atualiza a mudança de configurações
     def updateSettings(self, brilho, contraste, index, switch_value, 
                        switch_value2, switch_value3, switch_value4):
         str_brilho = str(brilho)
@@ -657,6 +660,7 @@ class MainWindow(QMainWindow):
             'switch_value4': str_switch_value4,
         }
 
+    #Abrir nova janela para selecionar região da câmera
     def frame_cam(self):
         if self.frame is None:
             global control_cam
@@ -665,8 +669,7 @@ class MainWindow(QMainWindow):
             nova_janela.show()
         else:
             QMessageBox.warning(None, "Desative a Câmera", "Desative a câmera primeiro.")
-
-     
+ 
 # Inicilização da IDE
 if __name__ == "__main__":
     app = QApplication(sys.argv)
