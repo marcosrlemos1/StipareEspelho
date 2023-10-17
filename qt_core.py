@@ -4,4 +4,4 @@ from PySide6.QtWidgets import *
 from PySide6.QtSvgWidgets import *
 import numpy as np
 from datetime import datetime
-from cv2 import *
+import cv2

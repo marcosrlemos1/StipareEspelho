@@ -7,9 +7,6 @@ import copy
 # IMPORT QT_CORE
 from qt_core import *
 
-# import opencv
-import cv2
-
 # IMPORT MAIN WINDOW
 from gui.windows.main_window.ui_main_window import UI_MainWindow
 
