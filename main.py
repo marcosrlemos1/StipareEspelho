@@ -18,6 +18,7 @@ x2_cam = None
 y2_cam = None
 frame_tratado = None
 
+
 # class  MAIN WINDOW
 class Frame_Cam(QMainWindow):
     def __init__(self):
@@ -149,8 +150,16 @@ class MainWindow(QMainWindow):
         self.ui.toggle.setCheckable(False)
         self.ui.toggle.clicked.connect(self.handle_toggle)
 
+        #YOLO PARAMETERS
+        model_weights = 'data/caixa_fechada/yolov4_2000_final.weights'
+        model_config = 'data/caixa_fechada/yolov4_custom.cfg'
+
+        net = cv2.dnn.readNet(model_weights, model_config)
+        
+        self.model = cv2.dnn_DetectionModel(net)
+        self.model.setInputParams(size=(416,416), scale=1/255)
+
         # INITIAL PARAMETERS
-        self.scale_cam = True
         self.brilho = 49
         self.contraste = 49
         self.selected_option = 0
@@ -163,6 +172,8 @@ class MainWindow(QMainWindow):
         self.switch_value2 = False
         self.switch_value3 = False
         self.switch_value4 = False
+        self.box = None
+        self.label = None
 
         sys.stdout = self
         self.log_messages = []
@@ -192,11 +203,13 @@ class MainWindow(QMainWindow):
         self.ui.ui_pages.switch3.setEnabled(False)
         self.ui.ui_pages.switch4.setEnabled(False)
 
-        self.timer = QTimer()
+        self.timer, self.timer2 = QTimer(), QTimer()
         self.timer.timeout.connect(self.video_frame)
         self.timer.timeout.connect(self.update_label)
         self.timer.timeout.connect(self.tratamento_frame)
-        self.timer.start(30)  # Atualiza o frame a cada 30 milissegundos
+        self.timer2.timeout.connect(self.yolo)
+        self.timer.start(10)  # Atualiza o frame a cada 30 milissegundos
+        self.timer2.start(5000)
 
         self.ui.ui_pages.combobox.currentIndexChanged.connect(self.combobox_selection_changed)  # Conectar o sinal ao método
         self.ui.ui_pages.slider.valueChanged.connect(self.slider_value_changed)
@@ -259,9 +272,6 @@ class MainWindow(QMainWindow):
             ret, self.frame = self.capture.read()  # Captura um frame da câmera
             if ret:
                 self.frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)  # Converte para RGB
-                if self.scale_cam is True:
-                    self.height_cam, self.width_cam, channel = self.frame.shape
-                    self.scale_cam = False
                 if x1_cam is not None:
                     self.frame = self.frame[y1_cam:y2_cam, x1_cam:x2_cam]
                 return self.frame
@@ -271,6 +281,7 @@ class MainWindow(QMainWindow):
                 self.ui.toggle.setCheckable(True)
 
     def video_frame(self):
+        start = time.time()
         self.frame = self.capturar_frame()
         global frame_tratado
         if frame_tratado is not None:
@@ -282,21 +293,26 @@ class MainWindow(QMainWindow):
             self.ui.ui_pages.switch3.setEnabled(True)
             self.ui.ui_pages.switch4.setEnabled(True)
 
-            # Define as dimensões desejadas para exibição
-            target_width, target_height = self.width_cam, self.height_cam
-    
-            # Redimensiona o quadro para as dimensões desejadas
-            resized_frame = cv2.resize(frame_tratado, (target_width, target_height))
+            if self.box is not None:
+                cv2.rectangle(frame_tratado, self.box, (0, 255, 0), 2)
+                cv2.putText(frame_tratado, self.label, (self.box[0], self.box[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+            
+            end = time.time()
+            fps_label = f"FPS: {round((1.0/(end-start)),2)}"
+            cv2.putText(frame_tratado, fps_label,(0, 25), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 5)
+            cv2.putText(frame_tratado, fps_label,(0, 25), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 3)
 
+            resized_frame = cv2.resize(frame_tratado, (800, 600))
+             
             # Converte o quadro redimensionado em uma imagem QImage
-            image = QImage(resized_frame.data, target_width,target_height,QImage.Format_RGB888)
+            image = QImage(resized_frame.data, 800, 600,QImage.Format_RGB888)
             pixmap = QPixmap.fromImage(image)
 
             # Redimensiona a pixmap para a exibição sem cortar
-            pixmap = pixmap.scaled(target_width, target_height, Qt.AspectRatioMode.KeepAspectRatio)
-
+            pixmap = pixmap.scaled(800, 600, Qt.AspectRatioMode.KeepAspectRatio)
+            
+            self.ui.label_camera.setFixedSize(800, 600)
             self.ui.label_camera.setPixmap(pixmap)
-            self.ui.label_camera.setFixedSize(target_width, target_height)
         else:
             self.ui.ui_pages.slider.setEnabled(False)
             self.ui.ui_pages.slider2.setEnabled(False)
@@ -553,6 +569,8 @@ class MainWindow(QMainWindow):
     # Função para salvar um frame da imagem
     def save_image(self):
         if self.camera_ativa == True:
+            cv2.rectangle(frame_tratado, self.box, (0, 255, 0), 2)
+            cv2.putText(frame_tratado, self.label, (self.box[0], self.box[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
             self.frame_rgb = cv2.cvtColor(frame_tratado, cv2.COLOR_BGR2RGB)
             # Solicitar ao usuário um local e nome de arquivo para salvar a imagem
             file_path, _ = QFileDialog.getSaveFileName(
@@ -673,7 +691,16 @@ class MainWindow(QMainWindow):
             nova_janela.show()
         else:
             QMessageBox.warning(None, "Desative a Câmera", "Desative a câmera primeiro.")
- 
+    
+    def yolo(self):
+        global frame_tratado
+        if frame_tratado is not None:
+            classes, scores, boxes = self.model.detect(frame_tratado, 0.1, 0.2)
+            
+            for (classid, score, box) in zip(classes, scores, boxes):
+                self.label = f"Caixa aberta:{score:.2f}"
+                self.box = box
+
 # Inicilização da IDE
 if __name__ == "__main__":
     app = QApplication(sys.argv)
