@@ -172,8 +172,10 @@ class MainWindow(QMainWindow):
         self.switch_value2 = False
         self.switch_value3 = False
         self.switch_value4 = False
-        self.box = None
+        self.box = []
         self.label = None
+        self.create_control = True
+        self.frame_cache = {}
 
         sys.stdout = self
         self.log_messages = []
@@ -209,7 +211,7 @@ class MainWindow(QMainWindow):
         self.timer.timeout.connect(self.tratamento_frame)
         self.timer2.timeout.connect(self.yolo)
         self.timer.start(10)  # Atualiza o frame a cada 30 milissegundos
-        self.timer2.start(5000)
+        self.timer2.start(3000)
 
         self.ui.ui_pages.combobox.currentIndexChanged.connect(self.combobox_selection_changed)  # Conectar o sinal ao método
         self.ui.ui_pages.slider.valueChanged.connect(self.slider_value_changed)
@@ -281,7 +283,6 @@ class MainWindow(QMainWindow):
                 self.ui.toggle.setCheckable(True)
 
     def video_frame(self):
-        start = time.time()
         self.frame = self.capturar_frame()
         global frame_tratado
         if frame_tratado is not None:
@@ -293,25 +294,22 @@ class MainWindow(QMainWindow):
             self.ui.ui_pages.switch3.setEnabled(True)
             self.ui.ui_pages.switch4.setEnabled(True)
 
-            if self.box is not None:
+            width, height = 1620,760
+
+            if len(self.box) > 0:
                 cv2.rectangle(frame_tratado, self.box, (0, 255, 0), 2)
                 cv2.putText(frame_tratado, self.label, (self.box[0], self.box[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
             
-            end = time.time()
-            fps_label = f"FPS: {round((1.0/(end-start)),2)}"
-            cv2.putText(frame_tratado, fps_label,(0, 25), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 5)
-            cv2.putText(frame_tratado, fps_label,(0, 25), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 3)
-
-            resized_frame = cv2.resize(frame_tratado, (800, 600))
+            resized_frame = cv2.resize(frame_tratado, (width, height))
              
             # Converte o quadro redimensionado em uma imagem QImage
-            image = QImage(resized_frame.data, 800, 600,QImage.Format_RGB888)
+            image = QImage(resized_frame.data,width, height,QImage.Format_RGB888)
             pixmap = QPixmap.fromImage(image)
 
             # Redimensiona a pixmap para a exibição sem cortar
-            pixmap = pixmap.scaled(800, 600, Qt.AspectRatioMode.KeepAspectRatio)
+            pixmap = pixmap.scaled(width, height, Qt.AspectRatioMode.KeepAspectRatio)
             
-            self.ui.label_camera.setFixedSize(800, 600)
+            self.ui.label_camera.setFixedSize(width, height)
             self.ui.label_camera.setPixmap(pixmap)
         else:
             self.ui.ui_pages.slider.setEnabled(False)
@@ -349,13 +347,20 @@ class MainWindow(QMainWindow):
         return imagem_ajustada
 
     # Aplicando super-resolução - ESPCN
-    def super_resolucao(self, imagem, path, index):
-        sr = cv2.dnn_superres.DnnSuperResImpl_create()
-        sr.readModel(path)
-        sr.setModel("espcn", index+1)
-        result_sr = sr.upsample(imagem)
+    def super_resolucao(self, imagem, path, index):  
+        if self.create_control is True:
+            self.sr = cv2.dnn_superres.DnnSuperResImpl_create()
+            self.sr.readModel(path)
+            self.sr.setModel("espcn", index+1)
+            self.create_control = False
+        
+        if imagem.tobytes() in self.frame_cache:
+            result = self.frame_cache[imagem.tobytes()]
+        else:
+            result = self.sr.upsample(imagem)
+            self.frame_cache[imagem.tobytes()] = result
 
-        return result_sr
+        return result
 
     # Aplicação de equalização por histograma
     def histogram_equalization(self, imagem):
@@ -412,6 +417,7 @@ class MainWindow(QMainWindow):
             self.updateSettings(self.brilho,self.contraste,self.index, self.switch_value, 
                                 self.switch_value2,self.switch_value3,self.switch_value4)
         if self.index != 0 and self.restore_control is False:
+            self.create_control = True
             self.selected_option = 'ESPCN/' + self.ui.ui_pages.combobox.currentText()  # Obter a opção selecionada
             self.report(f"{self.data_hora()} / Escala de super resolução mudou para {self.ui.ui_pages.combobox.currentText()}")
             self.updateSettings(self.brilho,self.contraste,self.index, self.switch_value, 
@@ -696,10 +702,15 @@ class MainWindow(QMainWindow):
         global frame_tratado
         if frame_tratado is not None:
             classes, scores, boxes = self.model.detect(frame_tratado, 0.1, 0.2)
-            
-            for (classid, score, box) in zip(classes, scores, boxes):
-                self.label = f"Caixa aberta:{score:.2f}"
-                self.box = box
+
+            if len(boxes) > 0:  # Verifica se há caixas detectadas
+                for (classid, score, box) in zip(classes, scores, boxes):
+                    self.label = f"Caixa aberta: {score:.2f}"
+                    self.box = box
+            else:
+                # Se nenhuma caixa foi detectada, defina self.box como vazio
+                self.box = []
+
 
 # Inicilização da IDE
 if __name__ == "__main__":
