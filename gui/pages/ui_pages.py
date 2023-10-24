@@ -101,26 +101,10 @@ class Ui_StackedWidget(object):
 
         self.verticalLayout.addItem(self.left_menu_spacinggg)
 
-        #CREATE PAGE 2
         StackedWidget.addWidget(self.page1)
-        self.page2 = QWidget()
-        self.page2.setObjectName(u"page2")
-        self.page2.setMinimumWidth(150)
-        self.page2.setMaximumWidth(150)
-
-        #CREATE LAYOUT FOR PAGE2
-        self.verticalLayout_2 = QVBoxLayout(self.page2)
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-
-        StackedWidget.addWidget(self.page2)
+    
         self.retranslateUi(StackedWidget)
         QMetaObject.connectSlotsByName(StackedWidget)
-
-        self.restore_button = PyPushButton("Restaurar Configurações", heigh=25, width=150,border_radius=4)
-        self.verticalLayout_2.addWidget(self.restore_button)
-
-        self.selection_frame = PyPushButton("Selecionar Região", heigh=25, width=150,border_radius=4)
-        self.verticalLayout_2.addWidget(self.selection_frame)
 
     def retranslateUi(self, StackedWidget):
         StackedWidget.setWindowTitle(QCoreApplication.translate("StackedWidget", u"StackedWidget", None))

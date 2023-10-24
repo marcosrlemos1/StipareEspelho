@@ -81,17 +81,6 @@ class UI_MainWindow(object):
         self.left_menu_bottom_frame_layout.setContentsMargins(0,0,0,0)
         self.left_menu_bottom_frame_layout.setSpacing(0)
 
-        #CREATE BUTTOM TO BOTTOM FRAME
-        self.toggle2 =PyPushButton("",
-                                   btn_color="#1E1F22",
-                                   heigh=50,
-                                   border_radius=25)
-        self.pixmap2 = QPixmap(r"gui\imagens\icons\icon_gear.png")
-        self.toggle2.setIcon(self.pixmap2)
-        self.toggle2.setIconSize(self.pixmap2.rect().size()/3)
-        self.left_menu_bottom_frame_layout.addWidget(self.toggle2)
-
-
         #CREATE CONTENT
         self.content = QFrame()
         self.content.setStyleSheet("background-color: #313338")
@@ -153,6 +142,24 @@ class UI_MainWindow(object):
             }
         """)
 
+        self.menu2 = QMenu(parent)
+        self.menu2.setStyleSheet("""
+            QMenu {
+                background-color: #1E1F22; /* Cor de fundo */
+                color: #FFF; /* Cor do texto */
+                border: 1px solid #555; /* Borda */
+                border-radius: 4px; /* Raio da borda */
+            }
+
+
+            QMenu::item {
+                padding: 5px 15px; /* Espaçamento interno */
+            }
+
+            QMenu::item:selected {
+                background-color: #04395E; /* Cor de fundo do item selecionado */
+            }
+        """)
 
         self.action1 = QAction("Salvar Imagem")
         self.action2 = QAction("Salvar Log")
@@ -166,9 +173,38 @@ class UI_MainWindow(object):
         self.menu1.addAction(self.action4)
         self.menu1.addAction(self.action5)
 
+        self.action2_1 = QAction('Resetar Configurações')
+        self.action2_2 = QAction('Região do Frame')
+        self.action2_3 = QAction('Restaurar Região do Frame')
+        
+        self.menu2.addAction(self.action2_1)
+        self.menu2.addAction(self.action2_2)
+        self.menu2.addAction(self.action2_3)
 
         self.file.setMenu(self.menu1)
         self.file.setStyleSheet('''
+            QPushButton {
+                background-color: #2B2D31;
+                color: #FFF;
+                border: None; 
+                border-radius: 4px; 
+                padding: 10px 20px; 
+                width: 120px; 
+            }
+            QPushButton::menu-indicator {
+                image: none; 
+                width: 0px; 
+            }
+            QPushButton:hover {
+                background-color: #3E4145;
+            }
+            QPushButton:pressed {
+                background-color: #1E2022; 
+            }
+        ''')
+
+        self.edit.setMenu(self.menu2)
+        self.edit.setStyleSheet('''
             QPushButton {
                 background-color: #2B2D31;
                 color: #FFF;
@@ -201,8 +237,8 @@ class UI_MainWindow(object):
         #CREATE SIDE MENU
         self.side = QFrame()
         self.side.setStyleSheet("background-color:#2B2D31; border: 0.50px solid black; color:white")
-        self.side.setMaximumWidth(180)
-        self.side.setMinimumWidth(180)
+        self.side.setMaximumWidth(204)
+        self.side.setMinimumWidth(204)
         self.page_layout.addWidget(self.side)
 
         #CREATE LAYOUT TO SIDE MENU

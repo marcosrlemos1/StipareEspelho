@@ -58,7 +58,7 @@ class Frame_Cam(QMainWindow):
                 if self.selection_start and self.selection_end:
                     x1, y1 = self.selection_start.x(), self.selection_start.y()
                     x2, y2 = self.selection_end.x(), self.selection_end.y()
-                    cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 1)  # Desenhe o retângulo vermelho
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)  # Desenhe o retângulo vermelho
 
                 # Converta o quadro do OpenCV para um formato exibível pelo PySide6
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -157,7 +157,7 @@ class MainWindow(QMainWindow):
         net = cv2.dnn.readNet(model_weights, model_config)
         
         self.model = cv2.dnn_DetectionModel(net)
-        self.model.setInputParams(size=(416,416), scale=1/255)
+        self.model.setInputParams(size=(249,249), scale=1/255)
 
         # INITIAL PARAMETERS
         self.brilho = 49
@@ -220,14 +220,8 @@ class MainWindow(QMainWindow):
         self.ui.ui_pages.switch2.clicked.connect(self.switch_changed2)
         self.ui.ui_pages.switch3.clicked.connect(self.switch_changed3)
         self.ui.ui_pages.switch4.clicked.connect(self.switch_changed4)
-        self.ui.ui_pages.restore_button.clicked.connect(self.restore_defaults)
-        self.ui.ui_pages.selection_frame.clicked.connect(self.frame_cam)
-        self.ui.edit.clicked.connect(self.restore_defaults)
 
         self.data_hora2 = self.update_label()
-
-        self.ui.toggle2.clicked.connect(self.show_page_2)
-        self.ui.toggle.clicked.connect(self.show_page_1)
 
         self.ui.action1.triggered.connect(self.save_image)
         self.ui.action2.triggered.connect(self.save_log)
@@ -235,11 +229,9 @@ class MainWindow(QMainWindow):
         self.ui.action4.triggered.connect(self.loadSettings)
         self.ui.action5.triggered.connect(self.exit_application)
 
-    def show_page_1(self):
-        self.ui.paginas.setCurrentWidget(self.ui.ui_pages.page1)
-
-    def show_page_2(self):
-        self.ui.paginas.setCurrentWidget(self.ui.ui_pages.page2)
+        self.ui.action2_1.triggered.connect(self.restore_defaults)
+        self.ui.action2_2.triggered.connect(self.frame_cam)
+        self.ui.action2_3.triggered.connect(self.frame_cam_restore)
 
     def update_label(self):
         atual = QDateTime.currentDateTime()
@@ -338,6 +330,7 @@ class MainWindow(QMainWindow):
             self.ui.label_camera.setPixmap(pixmap)
             self.ui.label_camera.setFixedSize(target_width, target_height)
 
+    # Ajuste de brilho e contraste
     def brilho_contraste(self, imagem, brilho, contraste):
         brilho = (((brilho + 1)-50)/50)*127
         contraste = ((contraste + 1)*2)/100
@@ -364,14 +357,14 @@ class MainWindow(QMainWindow):
 
     # Aplicação de equalização por histograma
     def histogram_equalization(self, imagem):
-        canal_azul, canal_verde, canal_vermelho = cv2.split(imagem)
+        canal_vermelho, canal_verde, canal_azul= cv2.split(imagem)
         # Aplicar a equalização de histograma a cada canal
         canal_azul_equalizado = cv2.equalizeHist(canal_azul)
         canal_verde_equalizado = cv2.equalizeHist(canal_verde)
         canal_vermelho_equalizado = cv2.equalizeHist(canal_vermelho)
         # Mesclar os canais equalizados para obter a imagem colorida final
         imagem_equalizada = cv2.merge(
-            (canal_azul_equalizado, canal_verde_equalizado, canal_vermelho_equalizado))
+            (canal_vermelho_equalizado, canal_verde_equalizado, canal_azul_equalizado))
 
         return imagem_equalizada
 
@@ -386,6 +379,7 @@ class MainWindow(QMainWindow):
 
         return imagem_suavizada
 
+    # Aplicação de filtro mediana
     def filtro_mediana(self, imagem):
         # Aplicar o filtro de mediana separadamente a cada canal de cor
         canal_azul = cv2.medianBlur(imagem[:, :, 0], 5)
@@ -398,6 +392,7 @@ class MainWindow(QMainWindow):
 
         return imagem_suavizada_m
 
+    #Aplicação de nitidez
     def nitidez(self, imagem):
         # Crie um kernel de nitidez
         kernel = np.array([[-1, -1, -1],
@@ -592,6 +587,7 @@ class MainWindow(QMainWindow):
     # Restaura as configurações padrões
     def restore_defaults(self):
         self.restore_control = True
+
         self.ui.ui_pages.slider.setValue(self.default_settings.getint('Configuracoes', 'brilho'))
         self.ui.ui_pages.slider2.setValue(self.default_settings.getint('Configuracoes', 'contraste'))
         self.ui.ui_pages.combobox.setCurrentIndex(self.default_settings.getint('Configuracoes', 'index'))
@@ -604,7 +600,6 @@ class MainWindow(QMainWindow):
         self.ui.ui_pages.switch4.setChecked(self.default_settings.getboolean('Configuracoes', 'switch_value4'))
         self.switch_value4 = self.default_settings.getboolean('Configuracoes', 'switch_value4')
         
-
         QMessageBox.information(None, "Restaurar configuração", "Restaurado com sucesso")
         self.report(f"{self.data_hora()} / Configurações restauradas")
         self.restore_control = False
@@ -698,6 +693,12 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.warning(None, "Desative a Câmera", "Desative a câmera primeiro.")
     
+    #Restaura a região do frame para tamanho original
+    def frame_cam_restore(self):
+        global x1_cam
+        x1_cam = None
+
+    #Detecção usando YoloV4
     def yolo(self):
         global frame_tratado
         if frame_tratado is not None:
@@ -710,7 +711,6 @@ class MainWindow(QMainWindow):
             else:
                 # Se nenhuma caixa foi detectada, defina self.box como vazio
                 self.box = []
-
 
 # Inicilização da IDE
 if __name__ == "__main__":
