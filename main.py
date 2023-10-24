@@ -18,12 +18,13 @@ x2_cam = None
 y2_cam = None
 frame_tratado = None
 
-
 # class  MAIN WINDOW
 class Frame_Cam(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Selecione a região da câmera")
+        icon = QIcon("./gui/imagens/icons/tellescom_logo.png")
+        self.setWindowIcon(icon)
 
         self.selection_start = None
         self.selection_end = None
@@ -144,6 +145,8 @@ class MainWindow(QMainWindow):
         self.ui = UI_MainWindow()
         self.ui.setup_ui(self)
         self.setWindowTitle("Tellescom")
+        icon = QIcon("./gui/imagens/icons/tellescom_logo.png")
+        self.setWindowIcon(icon)
 
         # SHOW APPLICATION
         self.show()
@@ -151,8 +154,8 @@ class MainWindow(QMainWindow):
         self.ui.toggle.clicked.connect(self.handle_toggle)
 
         #YOLO PARAMETERS
-        model_weights = 'data/caixa_fechada/yolov4_2000_final.weights'
-        model_config = 'data/caixa_fechada/yolov4_custom.cfg'
+        model_weights = './data/caixa_fechada/yolov4_2000_final.weights'
+        model_config = './data/caixa_fechada/yolov4_custom.cfg'
 
         net = cv2.dnn.readNet(model_weights, model_config)
         
