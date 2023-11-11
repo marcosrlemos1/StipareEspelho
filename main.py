@@ -48,7 +48,7 @@ class Frame_Cam(QMainWindow):
         self.timer.start(30)  # Atualização do feed da câmera a cada 30 milissegundos
 
         if control_cam is True:
-            self.capture_frame = cv2.VideoCapture(0)
+            self.capture_frame = cv2.VideoCapture(cv2.CAP_DSHOW)
         
     def mostrar_frame_camera(self):
         if control_cam is True and self.capture_frame is not None:
@@ -154,19 +154,19 @@ class MainWindow(QMainWindow):
         self.ui.toggle.clicked.connect(self.handle_toggle)
 
         #YOLO PARAMETERS
-        model_weights = './data/caixa_fechada/yolov4_2000_final.weights'
-        model_config = './data/caixa_fechada/yolov4_custom.cfg'
+        model_weights = './data/Yolo/yolov4_2000_final_caixa_aberta.weights'
+        model_config = './data/Yolo/yolov4_custom.cfg'
 
-        net = cv2.dnn.readNet(model_weights, model_config)
-        
-        self.model = cv2.dnn_DetectionModel(net)
-        self.model.setInputParams(size=(249,249), scale=1/255)
+        net_caixa_aberta = cv2.dnn.readNet(model_weights, model_config)
+        self.model_caixa_aberta = cv2.dnn_DetectionModel(net_caixa_aberta)
+        self.model_caixa_aberta.setInputParams(size=(249,249), scale=1/255)
 
         # INITIAL PARAMETERS
         self.brilho = 49
         self.contraste = 49
         self.selected_option = 0
         self.index = 0
+        self.index_modo = 0
         self.capture = None
         self.restore_control = False
         self.control_save = False
@@ -176,9 +176,14 @@ class MainWindow(QMainWindow):
         self.switch_value3 = False
         self.switch_value4 = False
         self.box = []
+        self.box2 = []
+        self.box3 = []
         self.label = None
+        self.label2 = None
+        self.label3 = None
         self.create_control = True
         self.frame_cache = {}
+        self.control_detection = True
 
         sys.stdout = self
         self.log_messages = []
@@ -217,6 +222,7 @@ class MainWindow(QMainWindow):
         self.timer2.start(3000)
 
         self.ui.ui_pages.combobox.currentIndexChanged.connect(self.combobox_selection_changed)  # Conectar o sinal ao método
+        self.ui.ui_pages.combobox_modo.currentIndexChanged.connect(self.combobox_modo_selection_changed)
         self.ui.ui_pages.slider.valueChanged.connect(self.slider_value_changed)
         self.ui.ui_pages.slider2.valueChanged.connect(self.slider_value_changed2)
         self.ui.ui_pages.switch.clicked.connect(self.switch_changed)
@@ -254,15 +260,13 @@ class MainWindow(QMainWindow):
             self.capture.release()  # Libera a câmera
             self.capture = None
             self.camera_ativa = False
-            self.report(f"{self.data_hora()} / Câmera desativada")
 
         # camera ativada e botão ativado
         else:
             self.ui.toggle.setCheckable(True)
             self.camera_ativa = True
             self.ui.toggle.setStyleSheet("background-color: red")
-            self.capture = cv2.VideoCapture(0)
-            self.report(f"{self.data_hora()} / Câmera ativada")
+            self.capture = cv2.VideoCapture(cv2.CAP_DSHOW)
 
     def capturar_frame(self):
         if self.capture is not None:
@@ -277,7 +281,7 @@ class MainWindow(QMainWindow):
                 self.capture = None
                 self.ui.toggle.setCheckable(True)
 
-    def video_frame(self):
+    def video_frame(self): 
         self.frame = self.capturar_frame()
         global frame_tratado
         if frame_tratado is not None:
@@ -289,11 +293,14 @@ class MainWindow(QMainWindow):
             self.ui.ui_pages.switch3.setEnabled(True)
             self.ui.ui_pages.switch4.setEnabled(True)
 
-            width, height = 1620,760
+            width, height = 800,600
 
-            if len(self.box) > 0:
-                cv2.rectangle(frame_tratado, self.box, (0, 255, 0), 2)
-                cv2.putText(frame_tratado, self.label, (self.box[0], self.box[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+            if self.index_modo == 0 :
+                pass
+            else:
+                if len(self.box) > 0:
+                    cv2.rectangle(frame_tratado, self.box, (0, 255, 0), 2)
+                    cv2.putText(frame_tratado, self.label, (self.box[0], self.box[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
             
             resized_frame = cv2.resize(frame_tratado, (width, height))
              
@@ -420,6 +427,13 @@ class MainWindow(QMainWindow):
             self.report(f"{self.data_hora()} / Escala de super resolução mudou para {self.ui.ui_pages.combobox.currentText()}")
             self.updateSettings(self.brilho,self.contraste,self.index, self.switch_value, 
                                 self.switch_value2,self.switch_value3,self.switch_value4)
+    
+    def combobox_modo_selection_changed(self, index):
+        self.index_modo = index
+        if self.index_modo == 0:
+            self.report(f"{self.data_hora()} / Modo de detecção desativada")
+        else:
+            self.report(f"{self.data_hora()} / Modo de detecção de caixa aberta")
 
     # Função para retornar o valor do brilho
     def slider_value_changed(self, value):
@@ -705,15 +719,22 @@ class MainWindow(QMainWindow):
     def yolo(self):
         global frame_tratado
         if frame_tratado is not None:
-            classes, scores, boxes = self.model.detect(frame_tratado, 0.1, 0.2)
+            if self.index_modo == 0:
+               pass
 
-            if len(boxes) > 0:  # Verifica se há caixas detectadas
-                for (classid, score, box) in zip(classes, scores, boxes):
-                    self.label = f"Caixa aberta: {score:.2f}"
-                    self.box = box
-            else:
-                # Se nenhuma caixa foi detectada, defina self.box como vazio
-                self.box = []
+            if self.index_modo == 1:
+                classes, scores, boxes = self.model_caixa_aberta.detect(frame_tratado, 0.1, 0.2)
+                if len(boxes) > 0:  # Verifica se há caixas detectadas
+                    for (classid, score, box) in zip(classes, scores, boxes):
+                        self.label = f"Caixa aberta: {score:.2f}"
+                        self.box = box
+                        if self.control_detection is True:
+                            self.report(f"{self.data_hora()} / Caixa aberta detectada")
+                            self.control_detection = False
+                else:
+                    # Se nenhuma caixa foi detectada, defina self.box como vazio
+                    self.box = []
+                    self.control_detection = True
 
 # Inicilização da IDE
 if __name__ == "__main__":

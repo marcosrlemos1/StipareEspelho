@@ -34,6 +34,30 @@ class Ui_StackedWidget(object):
         # LEFT MENU SPACING
         self.left_menu_spacinggg = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
+        self.label_modo = QLabel("Modo de detecção:")
+        self.verticalLayout.addWidget(self.label_modo)
+
+        self.combobox_modo = QComboBox()
+        self.combobox_modo.setStyleSheet("""
+                    QComboBox {
+                        background-color: #2B2D31;
+                        color: white;
+                        border: 1px solid #505050;
+                        border-radius: 4px;
+                        padding: 3px;
+                        font-size: 12px;
+                    }
+
+                    QComboBox QAbstractItemView {
+                        background-color: #2B2D31;
+                        border: 1px solid #505050;
+                        selection-background-color: #505050;
+                        color: white;
+                    }
+                """)
+        self.combobox_modo.addItems(['Desativado','Caixa aberta'])
+        self.verticalLayout.addWidget(self.combobox_modo)
+
 
         self.label = QLabel("Brilho")
         self.verticalLayout.addWidget(self.label)
