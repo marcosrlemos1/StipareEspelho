@@ -616,7 +616,10 @@ class MainWindow(QMainWindow):
         self.switch_value3 = self.default_settings.getboolean('Configuracoes', 'switch_value3')
         self.ui.ui_pages.switch4.setChecked(self.default_settings.getboolean('Configuracoes', 'switch_value4'))
         self.switch_value4 = self.default_settings.getboolean('Configuracoes', 'switch_value4')
-        
+
+        self.updateSettings(self.brilho,self.contraste,self.index, self.switch_value, 
+                                    self.switch_value2,self.switch_value3,self.switch_value4)
+
         QMessageBox.information(None, "Restaurar configuração", "Restaurado com sucesso")
         self.report(f"{self.data_hora()} / Configurações restauradas")
         self.restore_control = False
