@@ -126,6 +126,7 @@ class frameCam(QMainWindow):
         self.selection_start = None
         self.selection_end = None
         self.update()
+
         
 class mainWindow(QMainWindow):
     def __init__(self):
