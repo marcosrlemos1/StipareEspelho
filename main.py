@@ -1,14 +1,5 @@
-# IMPORT MODULES
-import sys
-import os
-import configparser
-import copy
-
 # IMPORT QT_CORE
-from qt_core import *
-
-# IMPORT MAIN WINDOW
-from gui.windows.main_window.ui_main_window import UI_MainWindow
+from library import *
 
 #GLOBAL VAR
 control_cam =  False
@@ -18,12 +9,11 @@ x2_cam = None
 y2_cam = None
 frame_tratado = None
 
-# class  MAIN WINDOW
-class Frame_Cam(QMainWindow):
+class frameCam(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Selecione a região da câmera")
-        icon = QIcon("./gui/imagens/icons/tellescom_logo.png")
+        icon = QIcon("./GUI/Imagens/icons/tellescom_logo.png")
         self.setWindowIcon(icon)
 
         self.selection_start = None
@@ -137,13 +127,13 @@ class Frame_Cam(QMainWindow):
         self.selection_end = None
         self.update()
         
-class MainWindow(QMainWindow):
+class mainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
         # SETUP MAIN WINDOW
         self.ui = UI_MainWindow()
-        self.ui.setup_ui(self)
+        self.ui.setupUi(self)
         self.setWindowTitle("Tellescom")
         icon = QIcon("./gui/imagens/icons/tellescom_logo.png")
         self.setWindowIcon(icon)
@@ -154,12 +144,14 @@ class MainWindow(QMainWindow):
         self.ui.toggle.clicked.connect(self.handle_toggle)
 
         #YOLO PARAMETERS
+        '''
         model_weights = './data/Yolo/yolov4_2000_final_caixa_aberta.weights'
         model_config = './data/Yolo/yolov4_custom.cfg'
 
-        net_caixa_aberta = cv2.dnn.readNet(model_weights, model_config)
-        self.model_caixa_aberta = cv2.dnn_DetectionModel(net_caixa_aberta)
+        netOpenBox = cv2.dnn.readNet(model_weights, model_config)
+        self.model_caixa_aberta = cv2.dnn_DetectionModel(netOpenBox)
         self.model_caixa_aberta.setInputParams(size=(249,249), scale=1/255)
+        '''
 
         # INITIAL PARAMETERS
         self.brilho = 49
@@ -205,47 +197,47 @@ class MainWindow(QMainWindow):
         self.current_settings = copy.deepcopy(self.default_settings)
         self.settings = copy.deepcopy(self.default_settings)
 
-        self.ui.ui_pages.slider.setEnabled(False)
-        self.ui.ui_pages.slider2.setEnabled(False)
-        self.ui.ui_pages.combobox.setEnabled(False)
-        self.ui.ui_pages.switch.setEnabled(False)
-        self.ui.ui_pages.switch2.setEnabled(False)
-        self.ui.ui_pages.switch3.setEnabled(False)
-        self.ui.ui_pages.switch4.setEnabled(False)
+        self.ui.uiPages.sliderBrightness.setEnabled(False)
+        self.ui.uiPages.sliderContrast.setEnabled(False)
+        self.ui.uiPages.comboboxSR.setEnabled(False)
+        self.ui.uiPages.switchSharpness.setEnabled(False)
+        self.ui.uiPages.switchHistogram.setEnabled(False)
+        self.ui.uiPages.switchLowPass.setEnabled(False)
+        self.ui.uiPages.switchMedian.setEnabled(False)
 
         self.timer, self.timer2 = QTimer(), QTimer()
         self.timer.timeout.connect(self.video_frame)
         self.timer.timeout.connect(self.update_label)
         self.timer.timeout.connect(self.tratamento_frame)
-        self.timer2.timeout.connect(self.yolo)
-        self.timer.start(10)  # Atualiza o frame a cada 30 milissegundos
+        #self.timer2.timeout.connect(self.yolo)
+        self.timer.start(30)  
         self.timer2.start(3000)
 
-        self.ui.ui_pages.combobox.currentIndexChanged.connect(self.combobox_selection_changed)  # Conectar o sinal ao método
-        self.ui.ui_pages.combobox_modo.currentIndexChanged.connect(self.combobox_modo_selection_changed)
-        self.ui.ui_pages.slider.valueChanged.connect(self.slider_value_changed)
-        self.ui.ui_pages.slider2.valueChanged.connect(self.slider_value_changed2)
-        self.ui.ui_pages.switch.clicked.connect(self.switch_changed)
-        self.ui.ui_pages.switch2.clicked.connect(self.switch_changed2)
-        self.ui.ui_pages.switch3.clicked.connect(self.switch_changed3)
-        self.ui.ui_pages.switch4.clicked.connect(self.switch_changed4)
+        self.ui.uiPages.comboboxSR.currentIndexChanged.connect(self.combobox_selection_changed)  # Conectar o sinal ao método
+        self.ui.uiPages.comboboxMode.currentIndexChanged.connect(self.combobox_modo_selection_changed)
+        self.ui.uiPages.sliderBrightness.valueChanged.connect(self.slider_value_changed)
+        self.ui.uiPages.sliderContrast.valueChanged.connect(self.slider_value_changed2)
+        self.ui.uiPages.switchSharpness.clicked.connect(self.switch_changed)
+        self.ui.uiPages.switchHistogram.clicked.connect(self.switch_changed2)
+        self.ui.uiPages.switchLowPass.clicked.connect(self.switch_changed3)
+        self.ui.uiPages.switchMedian.clicked.connect(self.switch_changed4)
 
         self.data_hora2 = self.update_label()
 
-        self.ui.action1.triggered.connect(self.save_image)
-        self.ui.action2.triggered.connect(self.save_log)
-        self.ui.action3.triggered.connect(self.saveSettings)
-        self.ui.action4.triggered.connect(self.loadSettings)
-        self.ui.action5.triggered.connect(self.exit_application)
+        self.ui.actionSaveImage.triggered.connect(self.save_image)
+        self.ui.actionSaveLog.triggered.connect(self.save_log)
+        self.ui.actionSaveSettings.triggered.connect(self.saveSettings)
+        self.ui.actionLoadSettings.triggered.connect(self.loadSettings)
+        self.ui.actionExit.triggered.connect(self.exit_application)
 
-        self.ui.action2_1.triggered.connect(self.restore_defaults)
-        self.ui.action2_2.triggered.connect(self.frame_cam)
-        self.ui.action2_3.triggered.connect(self.frame_cam_restore)
+        self.ui.actionResetSettings.triggered.connect(self.restore_defaults)
+        self.ui.actionFrame.triggered.connect(self.frame_cam)
+        self.ui.actionResetFrame.triggered.connect(self.frame_cam_restore)
 
     def update_label(self):
         atual = QDateTime.currentDateTime()
         formatted_datetime = atual.toString("dd/MM/yyyy - hh:mm:ss")
-        self.ui.label_status.setText("STATUS: " + formatted_datetime)
+        self.ui.labelStatus.setText("STATUS: " + formatted_datetime)
 
     # função responsavel para ativar e desativar a camera e botão
     def handle_toggle(self):
@@ -285,15 +277,15 @@ class MainWindow(QMainWindow):
         self.frame = self.capturar_frame()
         global frame_tratado
         if frame_tratado is not None:
-            self.ui.ui_pages.slider.setEnabled(True)
-            self.ui.ui_pages.slider2.setEnabled(True)
-            self.ui.ui_pages.combobox.setEnabled(True)
-            self.ui.ui_pages.switch.setEnabled(True)
-            self.ui.ui_pages.switch2.setEnabled(True)
-            self.ui.ui_pages.switch3.setEnabled(True)
-            self.ui.ui_pages.switch4.setEnabled(True)
+            self.ui.uiPages.sliderBrightness.setEnabled(True)
+            self.ui.uiPages.sliderContrast.setEnabled(True)
+            self.ui.uiPages.comboboxSR.setEnabled(True)
+            self.ui.uiPages.switchSharpness.setEnabled(True)
+            self.ui.uiPages.switchHistogram.setEnabled(True)
+            self.ui.uiPages.switchLowPass.setEnabled(True)
+            self.ui.uiPages.switchMedian.setEnabled(True)
 
-            width, height = 800,600
+            width, height = 500,400
 
             if self.index_modo == 0 :
                 pass
@@ -311,16 +303,16 @@ class MainWindow(QMainWindow):
             # Redimensiona a pixmap para a exibição sem cortar
             pixmap = pixmap.scaled(width, height, Qt.AspectRatioMode.KeepAspectRatio)
             
-            self.ui.label_camera.setFixedSize(width, height)
-            self.ui.label_camera.setPixmap(pixmap)
+            self.ui.labelCamera.setFixedSize(width, height)
+            self.ui.labelCamera.setPixmap(pixmap)
         else:
-            self.ui.ui_pages.slider.setEnabled(False)
-            self.ui.ui_pages.slider2.setEnabled(False)
-            self.ui.ui_pages.combobox.setEnabled(False)
-            self.ui.ui_pages.switch.setEnabled(False)
-            self.ui.ui_pages.switch2.setEnabled(False)
-            self.ui.ui_pages.switch3.setEnabled(False)
-            self.ui.ui_pages.switch4.setEnabled(False)
+            self.ui.uiPages.sliderBrightness.setEnabled(False)
+            self.ui.uiPages.sliderContrast.setEnabled(False)
+            self.ui.uiPages.comboboxSR.setEnabled(False)
+            self.ui.uiPages.switchSharpness.setEnabled(False)
+            self.ui.uiPages.switchHistogram.setEnabled(False)
+            self.ui.uiPages.switchLowPass.setEnabled(False)
+            self.ui.uiPages.switchMedian.setEnabled(False)
 
             # Define as dimensões desejadas para exibição
             target_width, target_height = 480, 360
@@ -337,8 +329,8 @@ class MainWindow(QMainWindow):
             pixmap = pixmap.scaled(
                 target_width, target_height, Qt.AspectRatioMode.KeepAspectRatio)
 
-            self.ui.label_camera.setPixmap(pixmap)
-            self.ui.label_camera.setFixedSize(target_width, target_height)
+            self.ui.labelCamera.setPixmap(pixmap)
+            self.ui.labelCamera.setFixedSize(target_width, target_height)
 
     # Ajuste de brilho e contraste
     def brilho_contraste(self, imagem, brilho, contraste):
@@ -423,8 +415,8 @@ class MainWindow(QMainWindow):
                                 self.switch_value2,self.switch_value3,self.switch_value4)
         if self.index != 0 and self.restore_control is False:
             self.create_control = True
-            self.selected_option = 'ESPCN/' + self.ui.ui_pages.combobox.currentText()  # Obter a opção selecionada
-            self.report(f"{self.data_hora()} / Escala de super resolução mudou para {self.ui.ui_pages.combobox.currentText()}")
+            self.selected_option = 'ESPCN/' + self.ui.uiPages.comboboxSR.currentText()  # Obter a opção selecionada
+            self.report(f"{self.data_hora()} / Escala de super resolução mudou para {self.ui.uiPages.comboboxSR.currentText()}")
             self.updateSettings(self.brilho,self.contraste,self.index, self.switch_value, 
                                 self.switch_value2,self.switch_value3,self.switch_value4)
     
@@ -438,14 +430,14 @@ class MainWindow(QMainWindow):
     # Função para retornar o valor do brilho
     def slider_value_changed(self, value):
         self.brilho = value
-        self.ui.ui_pages.label.setText(f"Brilho : {(value+1)-50}")
+        self.ui.uiPages.labelBrightness.setText(f"Brilho : {(value+1)-50}")
         self.updateSettings(self.brilho,self.contraste,self.index, self.switch_value, 
                                 self.switch_value2,self.switch_value3,self.switch_value4)
 
     # Função para retornar o valor do contraste
     def slider_value_changed2(self, value2):
         self.contraste = value2
-        self.ui.ui_pages.label2.setText(f"Contraste : {(value2+1)-50}")
+        self.ui.uiPages.labelContrast.setText(f"Contraste : {(value2+1)-50}")
         self.updateSettings(self.brilho,self.contraste,self.index, self.switch_value, 
                                 self.switch_value2,self.switch_value3,self.switch_value4)
 
@@ -536,9 +528,9 @@ class MainWindow(QMainWindow):
 
     # Substitua a função write para redirecionar a saída para o QTextEdit
     def write(self, text):
-        self.ui.text_edit.moveCursor(QTextCursor.End)
-        self.ui.text_edit.insertPlainText(text)
-        self.ui.text_edit.moveCursor(QTextCursor.End)
+        self.ui.textEdit.moveCursor(QTextCursor.End)
+        self.ui.textEdit.insertPlainText(text)
+        self.ui.textEdit.moveCursor(QTextCursor.End)
 
         # Adicione a mensagem à lista de mensagens de log
         self.log_messages.append(text.strip())
@@ -605,16 +597,16 @@ class MainWindow(QMainWindow):
     def restore_defaults(self):
         self.restore_control = True
 
-        self.ui.ui_pages.slider.setValue(self.default_settings.getint('Configuracoes', 'brilho'))
-        self.ui.ui_pages.slider2.setValue(self.default_settings.getint('Configuracoes', 'contraste'))
-        self.ui.ui_pages.combobox.setCurrentIndex(self.default_settings.getint('Configuracoes', 'index'))
-        self.ui.ui_pages.switch.setChecked(self.default_settings.getboolean('Configuracoes', 'switch_value'))
+        self.ui.uiPages.sliderBrightness.setValue(self.default_settings.getint('Configuracoes', 'brilho'))
+        self.ui.uiPages.sliderContrast.setValue(self.default_settings.getint('Configuracoes', 'contraste'))
+        self.ui.uiPages.comboboxSR.setCurrentIndex(self.default_settings.getint('Configuracoes', 'index'))
+        self.ui.uiPages.switchSharpness.setChecked(self.default_settings.getboolean('Configuracoes', 'switch_value'))
         self.switch_value = self.default_settings.getboolean('Configuracoes', 'switch_value')
-        self.ui.ui_pages.switch2.setChecked(self.default_settings.getboolean('Configuracoes', 'switch_value2'))
+        self.ui.uiPages.switchHistogram.setChecked(self.default_settings.getboolean('Configuracoes', 'switch_value2'))
         self.switch_value2 = self.default_settings.getboolean('Configuracoes', 'switch_value2')
-        self.ui.ui_pages.switch3.setChecked(self.default_settings.getboolean('Configuracoes', 'switch_value3'))
+        self.ui.uiPages.switchLowPass.setChecked(self.default_settings.getboolean('Configuracoes', 'switch_value3'))
         self.switch_value3 = self.default_settings.getboolean('Configuracoes', 'switch_value3')
-        self.ui.ui_pages.switch4.setChecked(self.default_settings.getboolean('Configuracoes', 'switch_value4'))
+        self.ui.uiPages.switchMedian.setChecked(self.default_settings.getboolean('Configuracoes', 'switch_value4'))
         self.switch_value4 = self.default_settings.getboolean('Configuracoes', 'switch_value4')
 
         self.updateSettings(self.brilho,self.contraste,self.index, self.switch_value, 
@@ -662,16 +654,16 @@ class MainWindow(QMainWindow):
             # Carregar configurações de um arquivo
             try:
                 self.settings.read(file_name)
-                self.ui.ui_pages.slider.setValue(self.settings.getint('Configuracoes', 'brilho'))
-                self.ui.ui_pages.slider2.setValue(self.settings.getint('Configuracoes', 'contraste'))
-                self.ui.ui_pages.combobox.setCurrentIndex(self.settings.getint('Configuracoes', 'index'))
-                self.ui.ui_pages.switch.setChecked(self.settings.getboolean('Configuracoes', 'switch_value'))
+                self.ui.uiPages.sliderBrightness.setValue(self.settings.getint('Configuracoes', 'brilho'))
+                self.ui.uiPages.sliderContrast.setValue(self.settings.getint('Configuracoes', 'contraste'))
+                self.ui.uiPages.comboboxSR.setCurrentIndex(self.settings.getint('Configuracoes', 'index'))
+                self.ui.uiPages.switchSharpness.setChecked(self.settings.getboolean('Configuracoes', 'switch_value'))
                 self.switch_value = self.settings.getboolean('Configuracoes', 'switch_value')
-                self.ui.ui_pages.switch2.setChecked(self.settings.getboolean('Configuracoes', 'switch_value2'))
+                self.ui.uiPages.switchHistogram.setChecked(self.settings.getboolean('Configuracoes', 'switch_value2'))
                 self.switch_value2 = self.settings.getboolean('Configuracoes', 'switch_value2')
-                self.ui.ui_pages.switch3.setChecked(self.settings.getboolean('Configuracoes', 'switch_value3'))
+                self.ui.uiPages.switchLowPass.setChecked(self.settings.getboolean('Configuracoes', 'switch_value3'))
                 self.switch_value3 = self.settings.getboolean('Configuracoes', 'switch_value3')
-                self.ui.ui_pages.switch4.setChecked(self.settings.getboolean('Configuracoes', 'switch_value4'))
+                self.ui.uiPages.switchMedian.setChecked(self.settings.getboolean('Configuracoes', 'switch_value4'))
                 self.switch_value4 = self.settings.getboolean('Configuracoes', 'switch_value4')
 
                 self.updateSettings(self.brilho,self.contraste,self.index, self.switch_value, 
@@ -708,7 +700,7 @@ class MainWindow(QMainWindow):
         if self.frame is None:
             global control_cam
             control_cam = True
-            nova_janela = Frame_Cam()
+            nova_janela = frameCam()
             nova_janela.show()
         else:
             QMessageBox.warning(None, "Desative a Câmera", "Desative a câmera primeiro.")
@@ -719,6 +711,7 @@ class MainWindow(QMainWindow):
         x1_cam = None
 
     #Detecção usando YoloV4
+    '''
     def yolo(self):
         global frame_tratado
         if frame_tratado is not None:
@@ -726,8 +719,8 @@ class MainWindow(QMainWindow):
                pass
 
             if self.index_modo == 1:
-                classes, scores, boxes = self.model_caixa_aberta.detect(frame_tratado, 0.1, 0.2)
-                if len(boxes) > 0:  # Verifica se há caixas detectadas
+                classes, scores, boxes = self.model_caixa_aberta.detect(frame_tratado, 0.3, 0.2)
+                if len(boxes) > 0: 
                     for (classid, score, box) in zip(classes, scores, boxes):
                         self.label = f"Caixa aberta: {score:.2f}"
                         self.box = box
@@ -735,12 +728,12 @@ class MainWindow(QMainWindow):
                             self.report(f"{self.data_hora()} / Caixa aberta detectada")
                             self.control_detection = False
                 else:
-                    # Se nenhuma caixa foi detectada, defina self.box como vazio
                     self.box = []
                     self.control_detection = True
+    '''
 
 # Inicilização da IDE
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = MainWindow()
+    window = mainWindow()
     sys.exit(app.exec())

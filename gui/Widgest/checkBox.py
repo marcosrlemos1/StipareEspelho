@@ -1,38 +1,38 @@
-from qt_core import *
-#botão interruptor
+from library import *
 
+#Switch Botton
 class PyToggle(QCheckBox):
     def __init__(
             self,
             width=40,
-            bg_color="#777",
-            circle_color="#DDD",
-            active_color="red",
-            animation_curve = QEasingCurve.OutBounce
+            bgColor="#777",
+            circleColor="#DDD",
+            activeColor="red",
+            animationCurve = QEasingCurve.OutBounce
     ):
         QCheckBox.__init__(self)
 
         self.setFixedSize(width, 18)
         self.setCursor(Qt.PointingHandCursor)
 
-        self._bg_color = bg_color
-        self._circle_color = circle_color
-        self._active_color = active_color
+        self._bgColor = bgColor
+        self._circleColor = circleColor
+        self._activeColor = activeColor
 
-        self._circle_position = 3
+        self._circlePosition = 3
         self.animation = QPropertyAnimation(self, b"circle_position",self)
-        self.animation.setEasingCurve(animation_curve)
+        self.animation.setEasingCurve(animationCurve)
         self.animation.setDuration(500)
 
         self.stateChanged.connect(self.start_transition)
 
     @Property(float)
     def circle_position(self):
-        return self._circle_position
+        return self._circlePosition
     
     @circle_position.setter
     def circle_position(self, pos):
-        self._circle_position = pos
+        self._circlePosition = pos
         self.update()
 
     def start_transition(self, value):
@@ -58,20 +58,20 @@ class PyToggle(QCheckBox):
 
         if not self.isChecked():
 
-            p.setBrush(QColor(self._bg_color))
+            p.setBrush(QColor(self._bgColor))
             p.drawRoundedRect(0, 0, rect.width(), self.height(), self.height() / 2, self.height() / 2)
 
 
-            p.setBrush(QColor(self._circle_color))
-            p.drawEllipse(self._circle_position, 3, 12, 12)
+            p.setBrush(QColor(self._circleColor))
+            p.drawEllipse(self._circlePosition, 3, 12, 12)
 
         else:
 
-            p.setBrush(QColor(self._active_color))
+            p.setBrush(QColor(self._activeColor))
             p.drawRoundedRect(0, 0, rect.width(), self.height(), self.height() / 2, self.height() / 2)
 
 
-            p.setBrush(QColor(self._circle_color))
-            p.drawEllipse(self._circle_position, 3, 12, 12)
+            p.setBrush(QColor(self._circleColor))
+            p.drawEllipse(self._circlePosition, 3, 12, 12)
 
         p.end()
