@@ -9,6 +9,7 @@ x2_cam = None
 y2_cam = None
 frame_tratado = None
 
+#Classe Frame CAM
 class frameCam(QMainWindow):
     def __init__(self):
         super().__init__()
