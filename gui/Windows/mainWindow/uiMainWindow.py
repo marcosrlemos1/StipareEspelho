@@ -1,6 +1,6 @@
 from library import *
-from GUI.Widgest.pushButton import PyPushButton
-from GUI.Pages.uiPages import Ui_StackedWidget
+from gui.Widgest.pushButton import PyPushButton
+from gui.pages.uiPages import Ui_StackedWidget
 
 #IMPORT CUSTOM WIDGETS
 class UI_MainWindow(object):

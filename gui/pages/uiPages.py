@@ -9,8 +9,8 @@
 ################################################################################
 
 from library import *
-from GUI.Widgest.sliderValue import PySlider
-from GUI.Widgest.checkBox import PyToggle
+from gui.Widgest.sliderValue import PySlider
+from gui.Widgest.checkBox import PyToggle
 
 class Ui_StackedWidget(object):
     def setupUi(self, StackedWidget):

@@ -215,14 +215,14 @@ class mainWindow(QMainWindow):
         self.timer.start(30)  
         self.timer2.start(3000)
 
-        self.ui.uiPages.comboboxSR.currentIndexChanged.connect(self.combobox_selection_changed)  # Conectar o sinal ao método
-        self.ui.uiPages.comboboxMode.currentIndexChanged.connect(self.combobox_modo_selection_changed)
-        self.ui.uiPages.sliderBrightness.valueChanged.connect(self.slider_value_changed)
-        self.ui.uiPages.sliderContrast.valueChanged.connect(self.slider_value_changed2)
-        self.ui.uiPages.switchSharpness.clicked.connect(self.switch_changed)
-        self.ui.uiPages.switchHistogram.clicked.connect(self.switch_changed2)
-        self.ui.uiPages.switchLowPass.clicked.connect(self.switch_changed3)
-        self.ui.uiPages.switchMedian.clicked.connect(self.switch_changed4)
+        self.ui.uiPages.comboboxSR.currentIndexChanged.connect(self.comboBoxSR) 
+        self.ui.uiPages.comboboxMode.currentIndexChanged.connect(self.comboBoxMode)
+        self.ui.uiPages.sliderBrightness.valueChanged.connect(self.sliderBrightness)
+        self.ui.uiPages.sliderContrast.valueChanged.connect(self.sliderContrast)
+        self.ui.uiPages.switchHistogram.clicked.connect(self.switchHistogram)
+        self.ui.uiPages.switchLowPass.clicked.connect(self.switchLowPass)
+        self.ui.uiPages.switchMedian.clicked.connect(self.switchMedian)
+        self.ui.uiPages.switchSharpness.clicked.connect(self.switchSharpness)
 
         self.data_hora2 = self.update_label()
 
@@ -409,7 +409,7 @@ class mainWindow(QMainWindow):
         return imagem_nitida
 
     # Função pra retornar o indice do Combobox
-    def combobox_selection_changed(self, index):
+    def comboBoxSR(self, index):
         self.index = index
         if self.index == 0 and self.restore_control is False:
             self.report(f"{self.data_hora()} / Escala de super resolução desativada")
@@ -422,7 +422,7 @@ class mainWindow(QMainWindow):
             self.updateSettings(self.brilho,self.contraste,self.index, self.switch_value, 
                                 self.switch_value2,self.switch_value3,self.switch_value4)
     
-    def combobox_modo_selection_changed(self, index):
+    def comboBoxMode(self, index):
         self.index_modo = index
         if self.index_modo == 0:
             self.report(f"{self.data_hora()} / Modo de detecção desativada")
@@ -430,21 +430,21 @@ class mainWindow(QMainWindow):
             self.report(f"{self.data_hora()} / Modo de detecção de caixa aberta")
 
     # Função para retornar o valor do brilho
-    def slider_value_changed(self, value):
+    def sliderBrightness(self, value):
         self.brilho = value
         self.ui.uiPages.labelBrightness.setText(f"Brilho : {(value+1)-50}")
         self.updateSettings(self.brilho,self.contraste,self.index, self.switch_value, 
                                 self.switch_value2,self.switch_value3,self.switch_value4)
 
     # Função para retornar o valor do contraste
-    def slider_value_changed2(self, value2):
+    def sliderContrast(self, value2):
         self.contraste = value2
         self.ui.uiPages.labelContrast.setText(f"Contraste : {(value2+1)-50}")
         self.updateSettings(self.brilho,self.contraste,self.index, self.switch_value, 
                                 self.switch_value2,self.switch_value3,self.switch_value4)
 
     # Função para retornar o valor do botão EH
-    def switch_changed(self, switch_value):
+    def switchHistogram(self, switch_value):
         self.switch_value = switch_value
         if switch_value is True and self.restore_control is False:
             self.report(f"{self.data_hora()} / Equilização por histograma ativado")
@@ -455,8 +455,7 @@ class mainWindow(QMainWindow):
             self.updateSettings(self.brilho,self.contraste,self.index, self.switch_value, 
                                 self.switch_value2,self.switch_value3,self.switch_value4)
 
-    # Função para retornar o valor do botão FPB
-    def switch_changed2(self, switch_value2):
+    def switchLowPass(self, switch_value2):
         self.switch_value2 = switch_value2
 
         if switch_value2 is True and self.restore_control is False:
@@ -468,8 +467,7 @@ class mainWindow(QMainWindow):
             self.updateSettings(self.brilho,self.contraste,self.index, self.switch_value, 
                                 self.switch_value2,self.switch_value3,self.switch_value4)
 
-    # Função para retornar o valor do botão FM
-    def switch_changed3(self, switch_value3):
+    def switchMedian(self, switch_value3):
         self.switch_value3 = switch_value3
 
         if switch_value3 is True and self.restore_control is False:
@@ -481,8 +479,8 @@ class mainWindow(QMainWindow):
             self.updateSettings(self.brilho,self.contraste,self.index, self.switch_value, 
                                 self.switch_value2,self.switch_value3,self.switch_value4)
 
-    # Função para retornar o valor do botão FM
-    def switch_changed4(self, switch_value4):
+    
+    def switchSharpness(self, switch_value4):
         self.switch_value4 = switch_value4
 
         if switch_value4 is True and self.restore_control is False:

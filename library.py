@@ -5,8 +5,7 @@ from PySide6.QtWidgets import *
 from PySide6.QtSvgWidgets import *
 
 #IMPORT MAIN WINDOW
-from GUI.Windows.mainWindow.uiMainWindow import UI_MainWindow
-
+from gui.Windows.mainWindow.uiMainWindow import UI_MainWindow
 
 #IMPORT OTHER LIBRARIES
 import numpy as np
