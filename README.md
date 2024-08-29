@@ -1,4 +1,4 @@
-## Repositório PySide 6: Interface para Captura e Processamento de Vídeo
+## Repositório: Interface para Captura e Processamento de Vídeo
 
 Este repositório contém um projeto desenvolvido com **PySide 6**, que oferece uma interface gráfica para captura e processamento de vídeo em tempo real. A aplicação é projetada para se conectar a uma câmera e exibir o vídeo capturado em uma janela. Além disso, inclui funcionalidades para processamento de imagem, permitindo ajustar o brilho e aplicar diversos filtros ao vídeo.
 
